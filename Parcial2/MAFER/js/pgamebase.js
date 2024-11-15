@@ -483,7 +483,7 @@ class Menu extends Phaser.Scene {
        // Animación hongo
         this.anims.create({
             key: 'mushroom',
-            frames: Array.from({ length: 32 }, (_, i) => ({ key: m${i + 1} })),
+            frames: Array.from({ length: 32 }, (_, i) => ({ key: `m${i + 1}` })), // Correcta forma de usar las plantillas de cadena
             frameRate: 10,
             repeat: -1
         });
