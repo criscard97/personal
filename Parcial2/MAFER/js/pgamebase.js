@@ -731,7 +731,7 @@ const config = {
     width: 1280,
     height: 720,
     // Array que indica el orden de visualización del vj
-    scene: [Menu, MainScene,  Level, Mode, Controls, EndGame],
+    scene: [MainScene, Menu, Level, Mode, Controls, EndGame],
     scale: {
         mode: Phaser.Scale.FIT
     }, physics: {
