@@ -14,6 +14,11 @@ class MainScene extends Phaser.Scene {
         this.load.baseURL = './';
         this.load.image('fondo1', './img/fondo1.jpg');
         this.load.image('prota', './img/prota/green_turn1.png');
+
+        this.load.image('stay1', './img/prota/green_001_stay.png');
+        this.load.image('stay2', './img/prota/green_002_stay.png');
+        this.load.image('stay3', './img/prota/green_003_stay.png');
+        
         this.load.image('turn2', './img/prota/green_turn2.png');
         this.load.image('turn3', './img/prota/green_turn3.png');
         this.load.image('walk1', './img/prota/green_walk1.png');
@@ -144,15 +149,19 @@ class MainScene extends Phaser.Scene {
             frameRate: 3,
             repeat: 0
         });
-        //Reposo
+        // Reposo con pausa entre frames
         this.anims.create({
             key: 'turn',
             frames: [
-                { key: 'prota' },
+                { key: 'stay3' },
+                { key: 'stay2' },
+                { key: 'stay1' },
             ],
-            frameRate: 2,
-            repeat: 0
+            frameRate: 10,                   // Mantener un frameRate normal para fluidez
+            repeat: -1,                     // Repetir indefinidamente
+            repeatDelay: 3000                // Pausa de 500ms entre repeticiones de la animación
         });
+
 
 
     }
@@ -196,12 +205,13 @@ class MainScene extends Phaser.Scene {
 
         // Si el personaje no se mueve, detener la animación
         if (!this.cursors.left.isDown && !this.cursors.right.isDown && this.characterObject.body.touching.down) {
-            this.characterObject.anims.stop();
-            this.characterObject.anims.play('turn', true); // Reproducir animación de salto
+            this.characterObject.anims.play('turn', true);
         }
+
 
         // Verificar si se recolectaron todas las estrellas
         if (score == 100) {
+
             this.scene.start('nextLevelScene'); // Cambiar a la siguiente escena (nivel)
         }
     }
@@ -220,6 +230,22 @@ class Menu extends Phaser.Scene {
         // En primer lugar, solo se ejecuta una vez
         // Multimedia
         this.load.baseURL = './';
+
+        this.load.image('stay1', './img/prota/green_001_stay.png');
+        this.load.image('stay2', './img/prota/green_002_stay.png');
+        this.load.image('stay3', './img/prota/green_003_stay.png');
+
+        this.load.image('hurt1', './img/prota/green_hurt1.png');
+        this.load.image('hurt2', './img/prota/green_hurt2.png');
+        this.load.image('hurt3', './img/prota/green_hurt3.png');
+        this.load.image('hurt4', './img/prota/green_hurt4.png');
+
+        for (let i = 1; i <= 5; i++) {
+            const key = `dead${i}`;
+            const path = `./img/prota/green_dead${i}.png`;
+            this.load.image(key, path);
+        }
+
         this.load.image('fondo2', './img/fondo2.png');
         this.load.image('prota', './img/prota/green_turn1.png');
         this.load.image('turn2', './img/prota/green_turn2.png');
@@ -368,7 +394,7 @@ class Menu extends Phaser.Scene {
                 console.log("Score: " + score);
                 console.log("Game Over");
                 this.physics.pause();
-                this.characterObject.setTint(0x2E073F); // Cambio de color para mostrar que ha perdido
+                this.characterObject.setTint(0xAE445A); // Cambio de color para mostrar que ha perdido
                 this.characterObject.anims.play('turn');
                 this.time.addEvent({
                     delay: 1500,
@@ -406,8 +432,8 @@ class Menu extends Phaser.Scene {
                 console.log("Score: " + score);
                 console.log("Game Over");
                 this.physics.pause();
-                this.characterObject.setTint(0x2E073F); // Cambio de color para mostrar que ha perdido
-                this.characterObject.anims.play('turn');
+                this.characterObject.setTint(0xAE445A); // Cambio de color para mostrar que ha perdido
+                this.characterObject.anims.play('death', true);
                 this.time.addEvent({
                     delay: 1500,
                     loop: false,
@@ -470,20 +496,23 @@ class Menu extends Phaser.Scene {
             frameRate: 3,
             repeat: 0
         });
-        //Reposo
+        // Reposo con pausa entre frames
         this.anims.create({
             key: 'turn',
             frames: [
-                { key: 'prota' },
+                { key: 'stay3' },
+                { key: 'stay2' },
+                { key: 'stay1' },
             ],
-            frameRate: 2,
-            repeat: 0
+            frameRate: 10,                   // Mantener un frameRate normal para fluidez
+            repeat: -1,                     // Repetir indefinidamente
+            repeatDelay: 3000                // Pausa de 500ms entre repeticiones de la animación
         });
 
-       // Animación hongo
+        // Animación hongo
         this.anims.create({
             key: 'mushroom',
-            frames: Array.from({ length: 32 }, (_, i) => ({ key: `m${i + 1}` })), // Correcta forma de usar las plantillas de cadena
+            frames: Array.from({ length: 32 }, (_, i) => ({ key: `m${i + 1}` })),
             frameRate: 10,
             repeat: -1
         });
@@ -495,6 +524,26 @@ class Menu extends Phaser.Scene {
             frameRate: 10,  // Velocidad de fotogramas
             repeat: 0  // No repetir la animación automáticamente
         });
+
+        // Animación daño
+        this.anims.create({
+            key: 'death',
+            frames: [
+                { key: 'hurt1' },
+                { key: 'hurt2' },
+                { key: 'hurt3' },
+                { key: 'hurt4' },
+                { key: 'dead1' },
+                { key: 'dead2' },
+                { key: 'dead3' },
+                { key: 'dead4' },
+                { key: 'dead5' },
+            ],
+            frameRate: 15,
+            repeat: -1
+        });
+
+        
 
         // 2. Función para reproducir la animación con delay
         const startAnimationWithDelay = () => {
@@ -571,7 +620,6 @@ class Menu extends Phaser.Scene {
 
         // Si el personaje no se mueve, detener la animación
         if (!this.cursors.left.isDown && !this.cursors.right.isDown && this.characterObject.body.touching.down) {
-            this.characterObject.anims.stop();
             this.characterObject.anims.play('turn', true); // Reproducir animación de salto
         }
 
@@ -683,7 +731,7 @@ const config = {
     width: 1280,
     height: 720,
     // Array que indica el orden de visualización del vj
-    scene: [MainScene, Menu, Level, Mode, Controls, EndGame],
+    scene: [Menu, MainScene,  Level, Mode, Controls, EndGame],
     scale: {
         mode: Phaser.Scale.FIT
     }, physics: {
