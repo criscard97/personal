@@ -2,12 +2,12 @@
 // 1) Variables y funciones comunes a todas las clases
 // 2) Las clases que componen a nuestro videojuego (lógica del juego)
 let score = 0; // Variable para llevar el puntaje
-class MainScene extends Phaser.Scene {
-    constructor() {
+class MainScene extends Phaser.Scene /*NIVEL 1*/ {
+    constructor()/*NIVEL 1*/ {
         super('gameScene');
     }
 
-    preload() {
+    preload()/*NIVEL 1*/ {
         // Multimedia
         this.load.baseURL = './';
         this.load.image('fondo1', './img/background1.png');
@@ -22,12 +22,12 @@ class MainScene extends Phaser.Scene {
             const path = `./img/prota/Run__${String(i).padStart(3, '0')}.png`;
             this.load.image(key, path);
         }
-        for (let i = 0; i <= 8; i++) {
+        for (let i = 1; i <= 8; i++) {
             const key = `jum${i}`;
             const path = `./img/prota/Jump__${String(i).padStart(3, '0')}.png`;
             this.load.image(key, path);
         }
-        for (let i = 0; i <= 6; i++) {
+        for (let i = 1; i <= 6; i++) {
             const key = `orb${i}`;
             const path = `./img/blueorb/frame__${String(i).padStart(3, '0')}.png`;
             this.load.image(key, path);
@@ -38,7 +38,7 @@ class MainScene extends Phaser.Scene {
         this.load.image('pisolv1', './img/stonefloor.png');
     }
 
-    create() {
+    create()/*NIVEL 1*/ {
 
 
         // Añadir el fondo
@@ -82,25 +82,26 @@ class MainScene extends Phaser.Scene {
         // Inicializar los controles
         this.cursors = this.input.keyboard.createCursorKeys();
 
-        this.physics.add.overlap(this.character, this.orb, collectStar, null, this);
+        this.physics.add.overlap(this.character, this.orb, collectOrb, null, this);
 
         // Función para manejar la recolección de estrellas
-        function collectStar(player, star) {
+        function collectOrb(player, orb) {
             score += 10;
-            colliderStar(star); // Llamamos a la función que desactiva la estrella
+            colliderOrb(orb); // Llamamos a la función que desactiva la estrella
             console.log("P1 Score: " + score);
         }
 
         // Función para desactivar las estrellas recolectadas
-        function colliderStar(star) {
+        function colliderOrb(orb) {
             // Desactiva el sprite visualmente
-            star.setVisible(false); // Opcional, si el sprite sigue visible
+            orb.setVisible(false); // Opcional, si el sprite sigue visible
 
             // Eliminar el cuerpo físico
-            if (star.body) {
-                star.body.destroy();
+            if (orb.body) {
+                orb.body.destroy();
             }
         }
+
 
         // Crear animaciones
         this.anims.create({
@@ -119,14 +120,14 @@ class MainScene extends Phaser.Scene {
 
         this.anims.create({
             key: 'jump',
-            frames: Array.from({ length: 9 }, (_, i) => ({ key: `jum${i}` })), // Los frames de reposo0 a reposo9
+            frames: Array.from({ length: 8 }, (_, i) => ({ key: `jum${i + 1}` })), // Los frames de reposo0 a reposo9
             frameRate: 6,
             repeat: -1  // Esto hará que la animación se repita indefinidamente
         });
 
         this.anims.create({
             key: 'orbSpeen',
-            frames: Array.from({ length: 6 }, (_, i) => ({ key: `orb${i}` })), // Los frames de reposo0 a reposo9
+            frames: Array.from({ length: 6 }, (_, i) => ({ key: `orb${i + 1}` })), // Los frames de reposo0 a reposo9
             frameRate: 10,
             repeat: -1  // Esto hará que la animación se repita indefinidamente
         });
@@ -151,7 +152,7 @@ class MainScene extends Phaser.Scene {
 
     }
 
-    update() {
+    update()/*NIVEL 1*/ {
         // Lógica de movimiento
         this.character.body.setVelocityX(0);  // Detener el movimiento horizontal
 
@@ -159,7 +160,10 @@ class MainScene extends Phaser.Scene {
         if (this.cursors.up.isDown && this.character.body.touching.down) {
             this.character.body.setVelocityY(-430); // Realiza el salto
             this.character.anims.play('jump', true); // Reproducir animación de salto
-        } else if (this.cursors.up.isDown) {
+        }
+
+        // Verificar si ya no está tocando el suelo (en el aire) y reproducir la animación de salto
+        else if (this.cursors.up.isDown && !this.character.body.touching.down) {
             this.character.anims.play('jump', true); // Reproducir animación de salto
         }
 
@@ -168,17 +172,20 @@ class MainScene extends Phaser.Scene {
             this.character.body.setVelocityX(260); // Mover a la derecha mientras saltas
             this.character.flipX = false; // Mantener la dirección original
             this.character.anims.play('jump', true); // Animación de salto
-        } // Movimiento combinado con salto (izquierda)
+        }
+        // Movimiento combinado con salto (izquierda)
         else if (this.cursors.left.isDown && this.cursors.up.isDown) {
             this.character.body.setVelocityX(-260); // Mover a la izquierda mientras saltas
             this.character.flipX = true; // Invertir la dirección del personaje
             this.character.anims.play('jump', true); // Animación de salto
-        } // Movimiento a la izquierda (caminar)
+        }
+        // Movimiento a la izquierda (caminar)
         else if (this.cursors.left.isDown) {
             this.character.body.setVelocityX(-260);   // Mover a la izquierda
             this.character.flipX = true;               // Invertir la dirección del personaje
             this.character.anims.play('run', true);    // Reproducir la animación de caminar
-        } // Movimiento a la derecha (caminar)
+        }
+        // Movimiento a la derecha (caminar)
         else if (this.cursors.right.isDown) {
             this.character.body.setVelocityX(260);    // Mover a la derecha
             this.character.flipX = false;              // Mantener la dirección original
@@ -189,6 +196,12 @@ class MainScene extends Phaser.Scene {
         if (!this.cursors.left.isDown && !this.cursors.right.isDown && this.character.body.touching.down) {
             this.character.anims.play('turn', true);  // Reproducir animación de reposo
         }
+
+        // Si el personaje está cayendo (no está tocando el suelo), activar animación de caída
+        if (!this.cursors.left.isDown && !this.cursors.right.isDown && !this.cursors.up.isDown && !this.character.body.touching.down) {
+            // Aquí se puede agregar una animación de caída, si la tienes
+            this.character.anims.play('jump', true);  // Reproducir animación de caída
+        }
         // Verificar si se recolectaron todas las estrellas
         if (score == 100) {
             this.scene.start('nextLevelScene'); // Cambiar a la siguiente escena (nivel)
@@ -198,25 +211,350 @@ class MainScene extends Phaser.Scene {
 }
 
 
-class Menu extends Phaser.Scene {
+class Menu extends Phaser.Scene/*NIVEL 2*/ {
     constructor() {
-        super('menuScene');
+        super('nextLevelScene');
     }
 
-    preload() {
-        // En primer lugar, solo se ejecuta una vez
+    preload()/*NIVEL 2*/ {
         // Multimedia
+        this.load.baseURL = './';
+        this.load.image('fondo', './img/background2.jpg');
+        this.load.image('platform', './img/platform.png');
+        this.load.image('prota', './img/prota/Idle__000.png');
+        for (let i = 0; i <= 9; i++) {
+            const key = `reposo${i}`;
+            const path = `./img/prota/Idle__${String(i).padStart(3, '0')}.png`;
+            this.load.image(key, path);
+        }
+        for (let i = 0; i <= 9; i++) {
+            const key = `mov${i}`;
+            const path = `./img/prota/Run__${String(i).padStart(3, '0')}.png`;
+            this.load.image(key, path);
+        }
+        for (let i = 1; i <= 8; i++) {
+            const key = `jum${i}`;
+            const path = `./img/prota/Jump__${String(i).padStart(3, '0')}.png`;
+            this.load.image(key, path);
+        }
+        for (let i = 1; i <= 6; i++) {
+            const key = `orb${i}`;
+            const path = `./img/blueorb/frame__${String(i).padStart(3, '0')}.png`;
+            this.load.image(key, path);
+        }
+        this.load.image('enemy', './img/enemies/demon-mask.png');
+        this.load.image('sensei2', './img/sensei/samurai2.png');
+        this.load.image('sensei3', './img/sensei/samurai3.png');
+        this.load.image('pisolv2', './img/stonefloor.png');
     }
 
-    create() {
+    create()/*NIVEL 2*/ {
         // En segundo lugar, se ejecuta una vez
         // Toda la lógica del videojuego
+        // Añadir el fondo
+        this.add.image(640, 360, 'fondo');
+
+        this.character = this.physics.add.sprite(80, 490, 'prota').setScale(0.22);
+        // Ajuste de la colisión (antes de la animación)
+        this.character.body.setSize(300, 500);  // Tamaño adecuado del cuadro de colisión
+        this.character.body.setOffset(0, 0);  // Alinea el cuadro de colisión con el sprite
+        // Inicializar los controles
+        this.cursors = this.input.keyboard.createCursorKeys();
+
+        // Crear el piso
+        let piso = this.physics.add.staticGroup();
+        for (let x = 50; x <= 1250; x += 100) {
+            let pisoObjeto = piso.create(x, 710, 'pisolv2').setScale(0.2);
+            pisoObjeto.refreshBody(); // Ajusta la hitbox al tamaño escalado
+        }
+
+        // Colisiones entre el personaje y el piso
+        this.physics.add.collider(this.character, piso);
+
+        // Agregar gravedad al personaje
+        this.character.body.setGravityY(125);
+        this.character.setCollideWorldBounds(true);
+
+        let plataforma = new Array();
+        plataforma[0] = piso.create(200, 300, 'platform').setScale(0.8);  // Crear plataforma 1
+        plataforma[1] = piso.create(600, 500, 'platform').setScale(0.8);  // Crear plataforma 2
+        plataforma[2] = piso.create(900, 300, 'platform').setScale(0.8);  // Crear plataforma 3
+
+        // Ajuste del cuadro de colisión para cada plataforma
+        for (let index = 0; index < plataforma.length; index++) {
+            // Ajustar el tamaño del cuadro de colisión
+            // Asegúrate de que la altura sea más pequeña y la misma que el sprite visual
+            let width = plataforma[index].width;  // Usamos el ancho del sprite
+            let height = 10; // Ajusta la altura de la colisión (puedes cambiarlo si es necesario)
+
+            plataforma[index].body.setSize(240, 20);  // Cambia el tamaño de la colisión
+
+            // Ajustar la posición del cuadro de colisión
+            // Si el cuadro de colisión está demasiado abajo, ajustamos el offset para moverlo hacia arriba
+            let offsetY = -5;  // Ajuste del desplazamiento hacia arriba (ajusta según sea necesario)
+
+            plataforma[index].body.setOffset(40, 20);  // Ajustar el desplazamiento en Y
+
+            // Finalmente, actualizamos el cuerpo físico para reflejar los cambios
+
+        }
+
+        let enemigoGrupo = this.physics.add.group();
+        let enemigo = [];
+        enemigo[0] = enemigoGrupo.create(600, 300, 'enemy');
+        enemigo[1] = enemigoGrupo.create(900, 200, 'enemy');
+
+        this.physics.add.collider(enemigoGrupo, piso);
+        enemigo[0].setBounce(1);
+        enemigo[0].setGravityY(100);
+        enemigo[0].setCollideWorldBounds(true);
+        enemigo[1].setBounce(1);
+        enemigo[1].setGravityY(10);
+        enemigo[1].setCollideWorldBounds(true);
+
+        this.orb = this.physics.add.group({
+            key: 'orb1',
+            repeat: 9,
+            setXY: { x: 160, y: 100, stepX: 120 },
+
+        });
+
+        this.physics.add.collider(this.orb, piso);
+
+        this.physics.add.overlap(this.character, this.orb, collectOrb, null, this);
+
+        // Función para manejar la recolección de estrellas
+        function collectOrb(player, orb) {
+            score += 25;
+            colliderOrb(orb); // Llamamos a la función que desactiva la estrella
+            console.log("P1 Score: " + score);
+        }
+
+        // Función para desactivar las estrellas recolectadas
+        function colliderOrb(orb) {
+            // Desactiva el sprite visualmente
+            orb.setVisible(false); // Opcional, si el sprite sigue visible
+
+            // Eliminar el cuerpo físico
+            if (orb.body) {
+                orb.body.destroy();
+            }
+        }
+
+
+        this.physics.add.overlap(this.character, enemigo[0], makeDamage, null, this);
+        this.physics.add.overlap(this.character, enemigo[1], makeDamage2, null, this);
+        //this.physics.add.overlap(this.character, enemigo[1], makeDamage, null, this);
+
+        function makeDamage(player) {
+            // Verificar si el personaje está invulnerable
+            if (this.invulnerable) {
+                return; // Si está invulnerable, no hacer nada
+            }
+
+            // Si no está invulnerable, aplicar daño
+            //console.log("Score: " + score);
+            score -= 50;
+            if (score < 0) {
+                score = 0;
+                console.log("Score: " + score);
+                console.log("Game Over");
+                this.physics.pause();
+                this.character.setTint(0xAE445A); // Cambio de color para mostrar que ha perdido
+                this.time.addEvent({
+                    delay: 1500,
+                    loop: false,
+                    callback: () => {
+                        this.scene.start("endScene");
+                    }
+                });
+            } else {
+                console.log("Score: " + score);
+                this.character.setTint(0xff0000);
+                enemigo[0].setTint(0x2f2f2f);
+                // Usar el temporizador para esperar 500ms antes de restaurar el color
+                this.time.addEvent({
+                    delay: 500, // Esperar 500ms
+                    callback: () => {
+                        this.character.clearTint(); // Restaurar el color original
+                    },
+                    loop: false // Solo se ejecuta una vez
+                });
+                this.time.addEvent({
+                    delay: 3000, // Esperar 2000ms antes de restaurar el color de enemigo
+                    callback: () => {
+                        this.character.clearTint();
+                        enemigo[0].clearTint();
+                    },
+                    loop: false // Solo se ejecuta una vez
+                });
+            }
+
+            // Activar la invulnerabilidad
+            this.invulnerable = true;
+
+            // Desactivar la invulnerabilidad después de un tiempo (1.5 segundos, por ejemplo)
+            this.time.addEvent({
+                delay: 3000,  // 2 segundos de invulnerabilidad
+                callback: () => {
+                    this.invulnerable = false;  // Vuelve a permitir daño
+                },
+                loop: false
+            });
+        }
+        function makeDamage2(player) {
+            // Verificar si el personaje está invulnerable
+            if (this.invulnerable2) {
+                return; // Si está invulnerable, no hacer nada
+            }
+
+            // Si no está invulnerable, aplicar daño
+            //console.log("Score: " + score);
+            score -= 50;
+            if (score < 0) {
+                score = 0;
+                console.log("Score: " + score);
+                console.log("Game Over");
+                this.physics.pause();
+                this.character.setTint(0xAE445A); // Cambio de color para mostrar que ha perdido
+                this.time.addEvent({
+                    delay: 1500,
+                    loop: false,
+                    callback: () => {
+                        this.scene.start("endScene");
+                    }
+                });
+            } else {
+                console.log("Score: " + score);
+                this.character.setTint(0xff0000);
+                enemigo[1].setTint(0x2f2f2f);
+                // Usar el temporizador para esperar 500ms antes de restaurar el color
+                this.time.addEvent({
+                    delay: 500, // Esperar 500ms
+                    callback: () => {
+                        this.character.clearTint(); // Restaurar el color original
+                    },
+                    loop: false // Solo se ejecuta una vez
+                });
+                this.time.addEvent({
+                    delay: 3000, // Esperar 2000ms antes de restaurar el color de enemigo
+                    callback: () => {
+                        this.character.clearTint();
+                        enemigo[1].clearTint();
+                    },
+                    loop: false // Solo se ejecuta una vez
+                });
+            }
+
+            // Activar la invulnerabilidad
+            this.invulnerable2 = true;
+
+            // Desactivar la invulnerabilidad después de un tiempo (1.5 segundos, por ejemplo)
+            this.time.addEvent({
+                delay: 3000,  // 2 segundos de invulnerabilidad
+                callback: () => {
+                    this.invulnerable2 = false;  // Vuelve a permitir daño
+                },
+                loop: false
+            });
+        }
+
+
+        // Crear animaciones
+        this.anims.create({
+            key: 'turn',
+            frames: Array.from({ length: 9 }, (_, i) => ({ key: `reposo${i}` })), // Los frames de reposo0 a reposo9
+            frameRate: 6,
+            repeat: -1  // Esto hará que la animación se repita indefinidamente
+        });
+
+        this.anims.create({
+            key: 'run',
+            frames: Array.from({ length: 9 }, (_, i) => ({ key: `mov${i}` })), // Los frames de reposo0 a reposo9
+            frameRate: 6,
+            repeat: -1  // Esto hará que la animación se repita indefinidamente
+        });
+
+        this.anims.create({
+            key: 'jump',
+            frames: Array.from({ length: 8 }, (_, i) => ({ key: `jum${i + 1}` })), // Ajuste de índices
+            frameRate: 6,
+            repeat: 0
+        });
+
+        this.anims.create({
+            key: 'orbSpeen',
+            frames: Array.from({ length: 6 }, (_, i) => ({ key: `orb${i + 1}` })), // Los frames de reposo0 a reposo9
+            frameRate: 10,
+            repeat: -1  // Esto hará que la animación se repita indefinidamente
+        });
+
+        // Asegúrate de que cada orbe reproduzca la animación cuando se crea
+        this.orb.children.iterate(function (orb) {
+            orb.setScale(0.1);  // Cambia el tamaño del orbe
+            orb.anims.play('orbSpeen', true); // Reproduce la animación
+        }, this);
+
+
+
+
     }
 
-    update() {
-        // En tercer lugar, se ejutar una y otra vez
-        // Actualización de multimedia
+    update()/*NIVEL 2*/ {
+
+        // Lógica de movimiento
+        this.character.body.setVelocityX(0);  // Detener el movimiento horizontal
+
+        // Verificar si el personaje está tocando el suelo y presionando la tecla de salto
+        if (this.cursors.up.isDown && this.character.body.touching.down) {
+            this.character.body.setVelocityY(-430); // Realiza el salto
+            this.character.anims.play('jump', true); // Reproducir animación de salto
+        }
+
+        // Verificar si ya no está tocando el suelo (en el aire) y reproducir la animación de salto
+        else if (this.cursors.up.isDown && !this.character.body.touching.down) {
+            this.character.anims.play('jump', true); // Reproducir animación de salto
+        }
+
+        // Movimiento combinado con salto (derecha)
+        if (this.cursors.right.isDown && this.cursors.up.isDown) {
+            this.character.body.setVelocityX(260); // Mover a la derecha mientras saltas
+            this.character.flipX = false; // Mantener la dirección original
+            this.character.anims.play('jump', true); // Animación de salto
+        }
+        // Movimiento combinado con salto (izquierda)
+        else if (this.cursors.left.isDown && this.cursors.up.isDown) {
+            this.character.body.setVelocityX(-260); // Mover a la izquierda mientras saltas
+            this.character.flipX = true; // Invertir la dirección del personaje
+            this.character.anims.play('jump', true); // Animación de salto
+        }
+        // Movimiento a la izquierda (caminar)
+        else if (this.cursors.left.isDown) {
+            this.character.body.setVelocityX(-260);   // Mover a la izquierda
+            this.character.flipX = true;               // Invertir la dirección del personaje
+            this.character.anims.play('run', true);    // Reproducir la animación de caminar
+        }
+        // Movimiento a la derecha (caminar)
+        else if (this.cursors.right.isDown) {
+            this.character.body.setVelocityX(260);    // Mover a la derecha
+            this.character.flipX = false;              // Mantener la dirección original
+            this.character.anims.play('run', true);    // Reproducir la animación de caminar
+        }
+
+        // Si no se mueve, poner al personaje en reposo
+        if (!this.cursors.left.isDown && !this.cursors.right.isDown && this.character.body.touching.down) {
+            this.character.anims.play('turn', true);  // Reproducir animación de reposo
+        }
+
+        // Si el personaje está cayendo (no está tocando el suelo), activar animación de caída
+        if (!this.cursors.left.isDown && !this.cursors.right.isDown && !this.cursors.up.isDown && !this.character.body.touching.down) {
+            // Aquí se puede agregar una animación de caída, si la tienes
+            this.character.anims.play('jump', true);  // Reproducir animación de caída
+        }
+
+
     }
+
 
 }
 
@@ -294,11 +632,14 @@ class EndGame extends Phaser.Scene {
     preload() {
         // En primer lugar, solo se ejecuta una vez
         // Multimedia
+        this.load.baseURL = './';
+        this.load.image('gameover', './img/gameover.png');
     }
 
     create() {
         // En segundo lugar, se ejecuta una vez
         // Toda la lógica del videojuego
+        this.add.image(640, 360, 'gameover').setScale(0.2);
     }
 
     update() {
@@ -321,7 +662,7 @@ const config = {
     }, physics: {
         default: 'arcade',
         arcade: {
-            debug: true,
+            debug: false,
             gravity: {
                 y: 300,
 
