@@ -258,6 +258,12 @@ class Menu extends Phaser.Scene {
         this.load.image('hurt3', './img/prota/green_hurt3.png');
         this.load.image('hurt4', './img/prota/green_hurt4.png');
 
+        for (let i = 0; i <= 17; i++) {
+            const key = `stitch${i}`;
+            const path = `./img/stitch2/${i}.png`;
+            this.load.image(key, path);
+        }
+
         for (let i = 1; i <= 5; i++) {
             const key = `dead${i}`;
             const path = `./img/prota/green_dead${i}.png`;
@@ -296,6 +302,9 @@ class Menu extends Phaser.Scene {
         // Fondo
         this.add.image(640, 360, 'fondo2').setScale(0.9);
 
+        // Crear un grupo para npc
+        this.npcGroup = this.physics.add.staticGroup();
+        this.stitch2 = this.npcGroup.create(900, 240, 'stitch0');
         // Crear el sprite para el personaje
         this.characterObject = this.physics.add.sprite(460, 545, 'prota').setScale(0.25);  // Usamos 'prota1' inicialmente
 
@@ -591,6 +600,15 @@ class Menu extends Phaser.Scene {
             loop: true  // Repetir de manera continua después de cada retraso
         });
 
+        this.anims.create({
+            key: 'stitch',
+            frames: Array.from({ length: 17 }, (_, i) => ({ key: `stitch${i}` })),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        this.stitch2.anims.play('stitch', true);
+
 
 
     }
@@ -750,7 +768,7 @@ const config = {
     width: 1280,
     height: 720,
     // Array que indica el orden de visualización del vj
-    scene: [MainScene, Menu, Level, Mode, Controls, EndGame],
+    scene: [Menu, MainScene,  Level, Mode, Controls, EndGame],
     scale: {
         mode: Phaser.Scale.FIT
     }, physics: {
