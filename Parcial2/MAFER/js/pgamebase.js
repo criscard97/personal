@@ -227,7 +227,7 @@ class MainScene extends Phaser.Scene {
 
         // Verificar si se recolectaron todas las estrellas
         if (score == 100) {
-
+            this.stitch.anims.stop();  // Detener la animación anterior
             this.scene.start('nextLevelScene'); // Cambiar a la siguiente escena (nivel)
         }
 
@@ -259,8 +259,8 @@ class Menu extends Phaser.Scene {
         this.load.image('hurt4', './img/prota/green_hurt4.png');
 
         for (let i = 0; i <= 17; i++) {
-            const key = `stitch${i}`;
-            const path = `./img/stitch2/${i}.png`;
+            const key = `s${i}`;
+            const path = `./img/stitch2/s${i}.png`;
             this.load.image(key, path);
         }
 
@@ -303,8 +303,8 @@ class Menu extends Phaser.Scene {
         this.add.image(640, 360, 'fondo2').setScale(0.9);
 
         // Crear un grupo para npc
-        this.npcGroup = this.physics.add.staticGroup();
-        this.stitch2 = this.npcGroup.create(900, 240, 'stitch0');
+        let npcGroup2 = this.physics.add.staticGroup();
+        let stitch2 = npcGroup2.create(900, 240, 'stitch0');
         // Crear el sprite para el personaje
         this.characterObject = this.physics.add.sprite(460, 545, 'prota').setScale(0.25);  // Usamos 'prota1' inicialmente
 
@@ -601,13 +601,13 @@ class Menu extends Phaser.Scene {
         });
 
         this.anims.create({
-            key: 'stitch',
-            frames: Array.from({ length: 17 }, (_, i) => ({ key: `stitch${i}` })),
+            key: 'stitch2',
+            frames: Array.from({ length: 17 }, (_, i) => ({ key: `s${i}` })),
             frameRate: 10,
             repeat: -1
         });
 
-        this.stitch2.anims.play('stitch', true);
+        stitch2.anims.play('stitch2', true);
 
 
 
