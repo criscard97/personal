@@ -5,12 +5,12 @@ let character = "";
 let stars = "";
 let score = 0; // Variable para llevar el puntaje
 
-class MainScene extends Phaser.Scene {
+class MainScene extends Phaser.Scene/*Nivel 1*/ {
     constructor() {
         super('gameScene');
     }
 
-    preload() {
+    preload()/*Nivel 1*/ {
         this.load.baseURL = './';
         this.load.image('fondo1', './img/fondo1.jpg');
         this.load.image('prota', './img/prota/green_turn1.png');
@@ -44,7 +44,7 @@ class MainScene extends Phaser.Scene {
         }
     }
 
-    create() {
+    create()/*Nivel 1*/ {
         // Fondo
         this.add.image(640, 360, 'fondo1').setScale(0.5);
 
@@ -182,18 +182,28 @@ class MainScene extends Phaser.Scene {
 
     }
 
-    update() {
+    update()/*Nivel 1*/ {
         // Detener el movimiento horizontal cuando no haya teclas presionadas
         this.characterObject.body.setVelocityX(0);
-
+    
+        // Inicializar el tiempo de caída si no está tocando el suelo
+        if (!this.characterObject.body.touching.down) {
+            // Si no está tocando el suelo, incrementamos el tiempo de caída
+            this.fallTime += this.game.loop.delta; // Aumentar el tiempo de caída
+        } else {
+            // Si toca el suelo, resetear el tiempo de caída
+            this.fallTime = 0;
+        }
+    
         // Verificar si el personaje está tocando el suelo y presionando la tecla de salto
         if (this.cursors.up.isDown && this.characterObject.body.touching.down) {
             this.characterObject.body.setVelocityY(-430); // Realiza el salto
             this.characterObject.anims.play('jump', true); // Reproducir animación de salto
-        } else if (this.cursors.up.isDown) {
+        }
+        // Si el personaje está en el aire y ha estado cayendo más de 300ms (tiempo de animación turn)
+        else if (!this.characterObject.body.touching.down && this.fallTime > 300) {
             this.characterObject.anims.play('jump', true); // Reproducir animación de salto
         }
-
         // Movimiento combinado con salto (derecha)
         if (this.cursors.right.isDown && this.cursors.up.isDown) {
             this.characterObject.body.setVelocityX(160); // Mover a la derecha mientras saltas
@@ -218,20 +228,26 @@ class MainScene extends Phaser.Scene {
             this.characterObject.flipX = false;              // Mantener la dirección original
             this.characterObject.anims.play('walk', true);    // Reproducir la animación de caminar
         }
-
-        // Si el personaje no se mueve, detener la animación
+    
+        // Si el personaje no se mueve y está tocando el suelo, reproducir la animación "turn"
         if (!this.cursors.left.isDown && !this.cursors.right.isDown && this.characterObject.body.touching.down) {
-            this.characterObject.anims.play('turn', true);
+            this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
         }
-
-
+    
+        // Si el personaje está en el aire, y ha estado cayendo menos de 300ms, reproducir la animación 'turn'
+        if (!this.characterObject.body.touching.down && this.fallTime <= 300) {
+            //this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
+        }
+    
         // Verificar si se recolectaron todas las estrellas
         if (score == 100) {
             this.stitch.anims.stop();  // Detener la animación anterior
             this.scene.start('nextLevelScene'); // Cambiar a la siguiente escena (nivel)
         }
-
     }
+    
+    
+    
 
 
 
@@ -239,12 +255,12 @@ class MainScene extends Phaser.Scene {
 
 
 
-class Menu extends Phaser.Scene {
-    constructor() {
+class Menu extends Phaser.Scene/*Nivel 2*/ {
+    constructor()/*Nivel 2*/ {
         super('nextLevelScene');
     }
 
-    preload() {
+    preload() /*Nivel 2*/{
         // En primer lugar, solo se ejecuta una vez
         // Multimedia
         this.load.baseURL = './';
@@ -298,7 +314,7 @@ class Menu extends Phaser.Scene {
 
     }
 
-    create() {
+    create() /*Nivel 2*/{
         // Fondo
         this.add.image(640, 360, 'fondo2').setScale(0.9);
 
@@ -614,7 +630,7 @@ class Menu extends Phaser.Scene {
     }
 
 
-    update() {
+    update() /*Nivel 2*/ {
         // Detener el movimiento horizontal cuando no haya teclas presionadas
         this.characterObject.body.setVelocityX(0);
         if (this.mushroom) {
@@ -622,14 +638,24 @@ class Menu extends Phaser.Scene {
 
         }
 
+        // Inicializar el tiempo de caída si no está tocando el suelo
+        if (!this.characterObject.body.touching.down) {
+            // Si no está tocando el suelo, incrementamos el tiempo de caída
+            this.fallTime += this.game.loop.delta; // Aumentar el tiempo de caída
+        } else {
+            // Si toca el suelo, resetear el tiempo de caída
+            this.fallTime = 0;
+        }
+    
         // Verificar si el personaje está tocando el suelo y presionando la tecla de salto
         if (this.cursors.up.isDown && this.characterObject.body.touching.down) {
             this.characterObject.body.setVelocityY(-430); // Realiza el salto
             this.characterObject.anims.play('jump', true); // Reproducir animación de salto
-        } else if (this.cursors.up.isDown) {
+        }
+        // Si el personaje está en el aire y ha estado cayendo más de 300ms (tiempo de animación turn)
+        else if (!this.characterObject.body.touching.down && this.fallTime > 300) {
             this.characterObject.anims.play('jump', true); // Reproducir animación de salto
         }
-
         // Movimiento combinado con salto (derecha)
         if (this.cursors.right.isDown && this.cursors.up.isDown) {
             this.characterObject.body.setVelocityX(160); // Mover a la derecha mientras saltas
@@ -654,15 +680,15 @@ class Menu extends Phaser.Scene {
             this.characterObject.flipX = false;              // Mantener la dirección original
             this.characterObject.anims.play('walk', true);    // Reproducir la animación de caminar
         }
-
-        // Si el personaje no se mueve, detener la animación
+    
+        // Si el personaje no se mueve y está tocando el suelo, reproducir la animación "turn"
         if (!this.cursors.left.isDown && !this.cursors.right.isDown && this.characterObject.body.touching.down) {
-            this.characterObject.anims.play('turn', true); // Reproducir animación de salto
+            this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
         }
-
-        // Verificar si se recolectaron todas las estrellas
-        if (this.starsCollected === this.totalStars) {
-            this.scene.start('nextLevelScene'); // Cambiar a la siguiente escena (nivel)
+    
+        // Si el personaje está en el aire, y ha estado cayendo menos de 300ms, reproducir la animación 'turn'
+        if (!this.characterObject.body.touching.down && this.fallTime <= 300) {
+            //this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
         }
     }
 
@@ -784,4 +810,3 @@ const config = {
 }
 // 4) Inicialización de Phaser
 new Phaser.Game(config);
-
