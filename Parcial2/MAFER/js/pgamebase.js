@@ -18,7 +18,7 @@ class MainScene extends Phaser.Scene {
         this.load.image('stay1', './img/prota/green_001_stay.png');
         this.load.image('stay2', './img/prota/green_002_stay.png');
         this.load.image('stay3', './img/prota/green_003_stay.png');
-        
+
         this.load.image('turn2', './img/prota/green_turn2.png');
         this.load.image('turn3', './img/prota/green_turn3.png');
         this.load.image('walk1', './img/prota/green_walk1.png');
@@ -36,6 +36,12 @@ class MainScene extends Phaser.Scene {
         this.load.image('plat1', './img/PlataformaLarga.png');
         this.load.image('estrella', './img/star.png');
         this.load.image('npc1', './img/npc1.png');
+
+        for (let i = 0; i <= 29; i++) {
+            const key = `stitch${i}`;
+            const path = `./img/stitch1/${i}.png`;
+            this.load.image(key, path);
+        }
     }
 
     create() {
@@ -46,6 +52,7 @@ class MainScene extends Phaser.Scene {
         this.npcGroup = this.physics.add.staticGroup();
 
         this.npc = this.npcGroup.create(900, 545, 'npc1').setScale(0.8);
+        this.stitch = this.npcGroup.create(600, 430, 'stitch0');
         this.npc.refreshBody();
 
         // Crear el grupo dinámico para el personaje
@@ -162,6 +169,15 @@ class MainScene extends Phaser.Scene {
             repeatDelay: 3000                // Pausa de 500ms entre repeticiones de la animación
         });
 
+        this.anims.create({
+            key: 'stitch',
+            frames: Array.from({ length: 29 }, (_, i) => ({ key: `stitch${i}` })),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        this.stitch.anims.play('stitch', true);
+
 
 
     }
@@ -214,7 +230,9 @@ class MainScene extends Phaser.Scene {
 
             this.scene.start('nextLevelScene'); // Cambiar a la siguiente escena (nivel)
         }
+
     }
+
 
 
 }
@@ -517,6 +535,7 @@ class Menu extends Phaser.Scene {
             repeat: -1
         });
 
+
         // Crear animación de púas
         this.anims.create({
             key: 'spike',  // Nombre de la animación
@@ -543,7 +562,7 @@ class Menu extends Phaser.Scene {
             repeat: -1
         });
 
-        
+
 
         // 2. Función para reproducir la animación con delay
         const startAnimationWithDelay = () => {
@@ -737,7 +756,7 @@ const config = {
     }, physics: {
         default: 'arcade',
         arcade: {
-            debug: false,
+            debug: true,
             gravity: {
                 y: 300,
 
