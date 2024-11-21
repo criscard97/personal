@@ -2,7 +2,7 @@
 // 1) Variables y funciones comunes a todas las clases
 // 2) Las clases que componen a nuestro videojuego (lógica del juego)
 let score = 0; // Variable para llevar el puntaje
-class MainScene extends Phaser.Scene /*NIVEL 1*/ {
+class Nivel1 extends Phaser.Scene /*NIVEL 1*/ {
     constructor()/*NIVEL 1*/ {
         super('gameScene');
     }
@@ -32,7 +32,7 @@ class MainScene extends Phaser.Scene /*NIVEL 1*/ {
             const path = `./img/blueorb/frame__${String(i).padStart(3, '0')}.png`;
             this.load.image(key, path);
         }
-        this.load.image('sensei', './img/sensei/samurai1.png');
+        this.load.image('sensei1', './img/sensei/samurai1.png');
         this.load.image('sensei2', './img/sensei/samurai2.png');
         this.load.image('sensei3', './img/sensei/samurai3.png');
         this.load.image('pisolv1', './img/stonefloor.png');
@@ -46,7 +46,7 @@ class MainScene extends Phaser.Scene /*NIVEL 1*/ {
 
         // Crear el sensei primero para que aparezca en el fondo
         this.senseiGroup = this.physics.add.staticGroup();
-        this.sensei = this.senseiGroup.create(260, 560, 'sensei').setScale(0.5);
+        this.sensei = this.senseiGroup.create(260, 560, 'sensei1').setScale(0.5);
         this.sensei.refreshBody();
 
         // Crear el personaje después para que quede en frente
@@ -149,6 +149,14 @@ class MainScene extends Phaser.Scene /*NIVEL 1*/ {
             repeat: -1 // Repetir indefinidamente
         });
 
+        this.anims.create({
+            key: 'sensei',
+            frames: Array.from({ length: 3 }, (_, i) => ({ key: `sensei${i + 1}` })), // Los frames de reposo0 a reposo9
+            frameRate: 2,
+            repeat: -1  // Esto hará que la animación se repita indefinidamente
+        });
+
+        this.sensei.anims.play('sensei',true);
 
     }
 
@@ -211,7 +219,7 @@ class MainScene extends Phaser.Scene /*NIVEL 1*/ {
 }
 
 
-class Menu extends Phaser.Scene/*NIVEL 2*/ {
+class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
     constructor() {
         super('nextLevelScene');
     }
@@ -501,6 +509,8 @@ class Menu extends Phaser.Scene/*NIVEL 2*/ {
             frameRate: 10,
             repeat: -1  // Esto hará que la animación se repita indefinidamente
         });
+        
+        
 
         // Asegúrate de que cada orbe reproduzca la animación cuando se crea
         this.orb.children.iterate(function (orb) {
@@ -689,7 +699,7 @@ const config = {
     width: 1280,
     height: 720,
     // Array que indica el orden de visualización del vj
-    scene: [Menu, MainScene,  Level, Mode, Controls, EndGame],
+    scene: [Nivel1, Nivel2, Level, Mode, Controls, EndGame],
     scale: {
         mode: Phaser.Scale.FIT
     }, physics: {
