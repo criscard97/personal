@@ -223,6 +223,11 @@ class Menu extends Phaser.Scene/*NIVEL 2*/ {
         this.load.image('platform', './img/platform.png');
         this.load.image('prota', './img/prota/Idle__000.png');
         for (let i = 0; i <= 9; i++) {
+            const key = `ataque${i}`;
+            const path = `./img/prota/Attack__${String(i).padStart(3, '0')}.png`;
+            this.load.image(key, path);
+        }
+        for (let i = 0; i <= 9; i++) {
             const key = `reposo${i}`;
             const path = `./img/prota/Idle__${String(i).padStart(3, '0')}.png`;
             this.load.image(key, path);
@@ -260,6 +265,7 @@ class Menu extends Phaser.Scene/*NIVEL 2*/ {
         this.character.body.setOffset(0, 0);  // Alinea el cuadro de colisión con el sprite
         // Inicializar los controles
         this.cursors = this.input.keyboard.createCursorKeys();
+        
 
         // Crear el piso
         let piso = this.physics.add.staticGroup();
@@ -437,7 +443,7 @@ class Menu extends Phaser.Scene/*NIVEL 2*/ {
                     loop: false // Solo se ejecuta una vez
                 });
                 this.time.addEvent({
-                    delay: 3000, // Esperar 2000ms antes de restaurar el color de enemigo
+                    delay: 2500, // Esperar 2000ms antes de restaurar el color de enemigo
                     callback: () => {
                         this.character.clearTint();
                         enemigo[1].clearTint();
@@ -451,7 +457,7 @@ class Menu extends Phaser.Scene/*NIVEL 2*/ {
 
             // Desactivar la invulnerabilidad después de un tiempo (1.5 segundos, por ejemplo)
             this.time.addEvent({
-                delay: 3000,  // 2 segundos de invulnerabilidad
+                delay: 2500,  // 2 segundos de invulnerabilidad
                 callback: () => {
                     this.invulnerable2 = false;  // Vuelve a permitir daño
                 },
@@ -481,6 +487,13 @@ class Menu extends Phaser.Scene/*NIVEL 2*/ {
             frameRate: 6,
             repeat: 0
         });
+        
+        this.anims.create({
+            key: 'attack',
+            frames: Array.from({ length: 9 }, (_, i) => ({ key: `ataque${i + 1}` })), // Ajuste de índices
+            frameRate: 20,
+            repeat: 0
+        });
 
         this.anims.create({
             key: 'orbSpeen',
@@ -495,7 +508,13 @@ class Menu extends Phaser.Scene/*NIVEL 2*/ {
             orb.anims.play('orbSpeen', true); // Reproduce la animación
         }, this);
 
-
+        this.attackFlag = false;
+        this.input.keyboard.on('keydown-J', () => {
+            console.log('Tecla J presionada');
+            this.character.anims.play('attack', true);
+            this.attackFlag = true;
+        });
+        
 
 
     }
@@ -504,6 +523,8 @@ class Menu extends Phaser.Scene/*NIVEL 2*/ {
 
         // Lógica de movimiento
         this.character.body.setVelocityX(0);  // Detener el movimiento horizontal
+
+        
 
         // Verificar si el personaje está tocando el suelo y presionando la tecla de salto
         if (this.cursors.up.isDown && this.character.body.touching.down) {
@@ -543,7 +564,19 @@ class Menu extends Phaser.Scene/*NIVEL 2*/ {
 
         // Si no se mueve, poner al personaje en reposo
         if (!this.cursors.left.isDown && !this.cursors.right.isDown && this.character.body.touching.down) {
-            this.character.anims.play('turn', true);  // Reproducir animación de reposo
+            if(!this.attackFlag == true){
+                this.character.anims.play('turn', true);  // Reproducir animación de reposo
+                
+            }else{
+                this.time.addEvent({
+                    delay: 300, // Esperar 3s
+                    loop: false, // Solo se ejecuta una vez
+                    callback: () => {
+                        this.attackFlag = false;
+                    },
+                });
+            }
+            
         }
 
         // Si el personaje está cayendo (no está tocando el suelo), activar animación de caída
@@ -656,13 +689,13 @@ const config = {
     width: 1280,
     height: 720,
     // Array que indica el orden de visualización del vj
-    scene: [MainScene, Menu, Level, Mode, Controls, EndGame],
+    scene: [Menu, MainScene,  Level, Mode, Controls, EndGame],
     scale: {
         mode: Phaser.Scale.FIT
     }, physics: {
         default: 'arcade',
         arcade: {
-            debug: false,
+            debug: true,
             gravity: {
                 y: 300,
 
