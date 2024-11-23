@@ -7,8 +7,8 @@ let score = 0; // Variable para llevar el puntaje
 this.isDamaged = false;
 let isDead = false;
 let attackFlag = false;
-
-class MainScene extends Phaser.Scene/*Nivel 1*/ {
+let shiftKey;
+class Nivel1 extends Phaser.Scene/*Nivel 1*/ {
     constructor() {
         super('gameScene');
     }
@@ -45,6 +45,12 @@ class MainScene extends Phaser.Scene/*Nivel 1*/ {
             const path = `./img/stitch1/${i}.png`;
             this.load.image(key, path);
         }
+
+        for (let i = 1; i <= 6; i++) {
+            const key = `run${i}`;
+            const path = `./img/prota/green__run${i}.png`;
+            this.load.image(key, path);
+        }
     }
 
     create()/*Nivel 1*/ {
@@ -78,6 +84,7 @@ class MainScene extends Phaser.Scene/*Nivel 1*/ {
 
         // Teclas de movimiento
         this.cursors = this.input.keyboard.createCursorKeys();
+        shiftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
         // Crear las estrellas
         this.stars = this.physics.add.group({
@@ -181,6 +188,14 @@ class MainScene extends Phaser.Scene/*Nivel 1*/ {
 
         this.stitch.anims.play('stitch', true);
 
+        // Animación correr
+        this.anims.create({
+            key: 'run',
+            frames: Array.from({ length: 6 }, (_, i) => ({ key: `run${i + 1}` })),
+            frameRate: 10,
+            repeat: -1
+        });
+
 
 
     }
@@ -189,57 +204,154 @@ class MainScene extends Phaser.Scene/*Nivel 1*/ {
         // Detener el movimiento horizontal cuando no haya teclas presionadas
         this.characterObject.body.setVelocityX(0);
 
-        // Inicializar el tiempo de caída si no está tocando el suelo
-        if (!this.characterObject.body.touching.down) {
-            // Si no está tocando el suelo, incrementamos el tiempo de caída
-            this.fallTime += this.game.loop.delta; // Aumentar el tiempo de caída
-        } else {
-            // Si toca el suelo, resetear el tiempo de caída
-            this.fallTime = 0;
-        }
+        if (isDead) {
 
-        // Verificar si el personaje está tocando el suelo y presionando la tecla de salto
-        if (this.cursors.up.isDown && this.characterObject.body.touching.down) {
-            this.characterObject.body.setVelocityY(-430); // Realiza el salto
-            this.characterObject.anims.play('jump', true); // Reproducir animación de salto
-        }
-        // Si el personaje está en el aire y ha estado cayendo más de 300ms (tiempo de animación turn)
-        else if (!this.characterObject.body.touching.down && this.fallTime > 300) {
-            this.characterObject.anims.play('jump', true); // Reproducir animación de salto
-        }
-        // Movimiento combinado con salto (derecha)
-        if (this.cursors.right.isDown && this.cursors.up.isDown) {
-            this.characterObject.body.setVelocityX(160); // Mover a la derecha mientras saltas
-            this.characterObject.flipX = false; // Mantener la dirección original
-            this.characterObject.anims.play('jump', true); // Animación de salto
-        }
-        // Movimiento combinado con salto (izquierda)
-        else if (this.cursors.left.isDown && this.cursors.up.isDown) {
-            this.characterObject.body.setVelocityX(-160); // Mover a la izquierda mientras saltas
-            this.characterObject.flipX = true; // Invertir la dirección del personaje
-            this.characterObject.anims.play('jump', true); // Animación de salto
-        }
-        // Movimiento a la izquierda (caminar)
-        else if (this.cursors.left.isDown) {
-            this.characterObject.body.setVelocityX(-160);   // Mover a la izquierda
-            this.characterObject.flipX = true;               // Invertir la dirección del personaje
-            this.characterObject.anims.play('walk', true);    // Reproducir la animación de caminar
-        }
-        // Movimiento a la derecha (caminar)
-        else if (this.cursors.right.isDown) {
-            this.characterObject.body.setVelocityX(160);    // Mover a la derecha
-            this.characterObject.flipX = false;              // Mantener la dirección original
-            this.characterObject.anims.play('walk', true);    // Reproducir la animación de caminar
-        }
+        }  else {
+            // Inicializar el tiempo de caída si no está tocando el suelo
+            if (!this.characterObject.body.touching.down) {
+                // Si no está tocando el suelo, incrementamos el tiempo de caída
+                this.fallTime += this.game.loop.delta; // Aumentar el tiempo de caída
+            } else {
+                // Si toca el suelo, resetear el tiempo de caída
+                this.fallTime = 0;
+            }
 
-        // Si el personaje no se mueve y está tocando el suelo, reproducir la animación "turn"
-        if (!this.cursors.left.isDown && !this.cursors.right.isDown && this.characterObject.body.touching.down) {
-            this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
-        }
+            // Verificar si el personaje está tocando el suelo y presionando la tecla de salto
+            if (this.cursors.up.isDown && this.characterObject.body.touching.down) {
+                if (this.isDamaged == true) {
+                    this.time.addEvent({
+                        delay: 350, // Esperar 3s
+                        loop: false, // Solo se ejecuta una vez
+                        callback: () => {
+                            this.isDamaged = false;
+                        },
+                    });
+                } else {
+                    this.characterObject.body.setVelocityY(-430); // Realiza el salto
+                    this.characterObject.anims.play('jump', true); // Reproducir animación de salto
+                }
 
-        // Si el personaje está en el aire, y ha estado cayendo menos de 300ms, reproducir la animación 'turn'
-        if (!this.characterObject.body.touching.down && this.fallTime <= 300) {
-            //this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
+            }
+            // Si el personaje está en el aire y ha estado cayendo más de 300ms (tiempo de animación turn)
+            else if (!this.characterObject.body.touching.down && this.fallTime > 300) {
+                this.characterObject.anims.play('jump', true); // Reproducir animación de salto
+            }
+            // Movimiento combinado con salto (derecha)
+            if (this.cursors.right.isDown && this.cursors.up.isDown) {
+                if (this.isDamaged == true) {
+                    this.time.addEvent({
+                        delay: 350, // Esperar 3s
+                        loop: false, // Solo se ejecuta una vez
+                        callback: () => {
+                            this.isDamaged = false;
+                        },
+                    });
+                } else {
+                    if (shiftKey.isDown) {
+                        this.characterObject.body.setVelocityX(330); // Mover a la derecha mientras saltas
+                        this.characterObject.flipX = false; // Mantener la dirección original
+                        this.characterObject.anims.play('jump', true); // Animación de salto    
+                    } else {
+                        this.characterObject.body.setVelocityX(200); // Mover a la derecha mientras saltas
+                        this.characterObject.flipX = false; // Mantener la dirección original
+                        this.characterObject.anims.play('jump', true); // Animación de salto    
+                    }
+                }
+
+
+            }
+            // Movimiento combinado con salto (izquierda)
+            else if (this.cursors.left.isDown && this.cursors.up.isDown) {
+                if (this.isDamaged == true) {
+                    this.time.addEvent({
+                        delay: 350, // Esperar 3s
+                        loop: false, // Solo se ejecuta una vez
+                        callback: () => {
+                            this.isDamaged = false;
+                        },
+                    });
+                } else {
+                    if (shiftKey.isDown) {
+                        this.characterObject.body.setVelocityX(-330); // Mover a la izquierda mientras saltas
+                        this.characterObject.flipX = true; // Invertir la dirección del personaje
+                        this.characterObject.anims.play('jump', true); // Animación de salto
+                    } else {
+                        this.characterObject.body.setVelocityX(-200); // Mover a la izquierda mientras saltas
+                        this.characterObject.flipX = true; // Invertir la dirección del personaje
+                        this.characterObject.anims.play('jump', true); // Animación de salto    
+                    }
+                }
+            }
+
+
+            // Movimiento a la izquierda (caminar)
+            else if (this.cursors.left.isDown) {
+                if (this.isDamaged == true) {
+                    this.time.addEvent({
+                        delay: 350, // Esperar 3s
+                        loop: false, // Solo se ejecuta una vez
+                        callback: () => {
+                            this.isDamaged = false;
+                        },
+                    });
+                } else {
+                    if (shiftKey.isDown) {
+                        this.characterObject.body.setVelocityX(-330);   // Mover a la izquierda
+                        this.characterObject.flipX = true;               // Invertir la dirección del personaje
+                        this.characterObject.anims.play('run', true);    // Reproducir la animación de caminar
+                    } else {
+                        this.characterObject.body.setVelocityX(-200);   // Mover a la izquierda
+                        this.characterObject.flipX = true;               // Invertir la dirección del personaje
+                        this.characterObject.anims.play('walk', true);    // Reproducir la animación de caminar
+                    }
+
+                }
+            }
+            // Movimiento a la derecha (caminar)
+            else if (this.cursors.right.isDown) {
+                if (this.isDamaged == true) {
+                    this.time.addEvent({
+                        delay: 350, // Esperar 3s
+                        loop: false, // Solo se ejecuta una vez
+                        callback: () => {
+                            this.isDamaged = false;
+                        },
+                    });
+                } else {
+                    if (shiftKey.isDown && this.cursors.right.isDown) {
+                        console.log("SHIFT up");
+                        this.characterObject.body.setVelocityX(330);    // Mover a la derecha
+                        this.characterObject.flipX = false;              // Mantener la dirección original
+                        this.characterObject.anims.play('run', true);    // Reproducir la animación de caminar
+                    } else {
+                        this.characterObject.body.setVelocityX(160);    // Mover a la derecha
+                        this.characterObject.flipX = false;              // Mantener la dirección original
+                        this.characterObject.anims.play('walk', true);    // Reproducir la animación de caminar
+                    }
+
+                }
+
+            }
+
+            // Si el personaje no se mueve y está tocando el suelo, reproducir la animación "turn"
+            if (!this.cursors.left.isDown && !this.cursors.right.isDown && this.characterObject.body.touching.down) {
+                if (this.isDamaged == true) {
+                    this.time.addEvent({
+                        delay: 350, // Esperar 3s
+                        loop: false, // Solo se ejecuta una vez
+                        callback: () => {
+                            this.isDamaged = false;
+                        },
+                    });
+                } else {
+                    this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
+                }
+            }
+
+            // Si el personaje está en el aire, y ha estado cayendo menos de 300ms, reproducir la animación 'turn'
+            if (!this.characterObject.body.touching.down && this.fallTime <= 300) {
+                //this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
+            }
         }
 
         // Verificar si se recolectaron todas las estrellas
@@ -258,7 +370,7 @@ class MainScene extends Phaser.Scene/*Nivel 1*/ {
 
 
 
-class Menu extends Phaser.Scene/*Nivel 2*/ {
+class Nivel2 extends Phaser.Scene/*Nivel 2*/ {
     constructor()/*Nivel 2*/ {
         super('nextLevelScene');
     }
@@ -301,6 +413,11 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
         for (let i = 1; i <= 4; i++) {
             const key = `jump${i}`;
             const path = `./img/prota/green_jump${i}.png`;
+            this.load.image(key, path);
+        }
+        for (let i = 1; i <= 6; i++) {
+            const key = `run${i}`;
+            const path = `./img/prota/green__run${i}.png`;
             this.load.image(key, path);
         }
         for (let i = 1; i <= 35; i++) {
@@ -360,6 +477,7 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
 
         // Teclas de movimiento
         this.cursors = this.input.keyboard.createCursorKeys();
+        shiftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
         // Crear las estrellas
         this.stars = this.physics.add.group({
@@ -440,8 +558,13 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
                 console.log("Score: " + score);
                 console.log("Game Over");
                 this.physics.pause();
+                isDead = true;
+                this.isDamaged = false;
+                //this.characterObject.setSize(300, 100);
+                this.characterObject.setPosition(this.characterObject.x, this.characterObject.y + 25);
+
                 this.characterObject.setTint(0xAE445A); // Cambio de color para mostrar que ha perdido
-                this.characterObject.anims.play('turn');
+                this.characterObject.anims.play('death', true);
                 this.time.addEvent({
                     delay: 1500,
                     loop: false,
@@ -451,6 +574,7 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
                 });
             } else {
                 this.characterObject.setTint(0xff0000);
+                this.mushroom.setTint(0x0A3981);
                 // Usar el temporizador para esperar 500ms antes de restaurar el color
                 this.characterObject.anims.play('hurt', true);
                 this.isDamaged = true;
@@ -467,11 +591,15 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
                     callback: () => {
                         this.mushroom.enableBody(true, 260, 650, true, true); // Reactivar el hongo
                         this.mushroom.setVisible(true); // Asegúrate de que sea visible
+                        this.mushroom.clearTint();
                     },
                     loop: false
                 });
             }
         }
+
+
+
         function makeDamage2(player, spike) {
             colliderMushroom(spike);
             score -= 50;
@@ -480,10 +608,19 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
                 console.log("Score: " + score);
                 console.log("Game Over");
                 this.physics.pause();
+
+                //makeDeath();
+                isDead = true;
+                this.isDamaged = false;
+                //this.characterObject.setSize(300, 100);
+                this.characterObject.setPosition(this.characterObject.x, this.characterObject.y + 25);
+
                 this.characterObject.setTint(0xAE445A); // Cambio de color para mostrar que ha perdido
                 this.characterObject.anims.play('death', true);
+
+
                 this.time.addEvent({
-                    delay: 1500,
+                    delay: 2500,
                     loop: false,
                     callback: () => {
                         this.scene.start("endScene");
@@ -491,6 +628,7 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
                 });
             } else {
                 this.characterObject.setTint(0xff0000);
+                this.spike.setTint(0x54473F);
                 // Usar el temporizador para esperar 500ms antes de restaurar el color
                 this.characterObject.anims.play('hurt', true);
                 this.isDamaged = true;
@@ -507,6 +645,7 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
                     callback: () => {
                         this.spike.enableBody(true, 600, 450, true, true); // Reactivar el hongo
                         this.spike.setVisible(true); // Asegúrate de que sea visible
+                        this.spike.clearTint();
                     },
                     loop: false
                 });
@@ -591,7 +730,7 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
                 { key: 'dead5' },
             ],
             frameRate: 15,
-            repeat: -1
+            repeat: 0
         });
         // Animación daño
         this.anims.create({
@@ -606,11 +745,19 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
             repeat: -1
         });
 
+        // Animación correr
+        this.anims.create({
+            key: 'run',
+            frames: Array.from({ length: 6 }, (_, i) => ({ key: `run${i + 1}` })),
+            frameRate: 10,
+            repeat: -1
+        });
+
 
 
         // 2. Función para reproducir la animación con delay
         const startAnimationWithDelay = () => {
-            console.log("Iniciando animación...");  // Aquí puedes agregar un console.log para verificar que se ejecuta
+            //console.log("Iniciando animación...");  // Aquí puedes agregar un console.log para verificar que se ejecuta
             this.spike.anims.play('spike', true);  // Reproducir la animación
         };
 
@@ -657,91 +804,157 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
 
         }
 
+        if (isDead) {
 
-
-        // Inicializar el tiempo de caída si no está tocando el suelo
-        if (!this.characterObject.body.touching.down) {
-            // Si no está tocando el suelo, incrementamos el tiempo de caída
-            this.fallTime += this.game.loop.delta; // Aumentar el tiempo de caída
         } else {
-            // Si toca el suelo, resetear el tiempo de caída
-            this.fallTime = 0;
-        }
-
-        // Verificar si el personaje está tocando el suelo y presionando la tecla de salto
-        if (this.cursors.up.isDown && this.characterObject.body.touching.down) {
-            this.characterObject.body.setVelocityY(-430); // Realiza el salto
-            this.characterObject.anims.play('jump', true); // Reproducir animación de salto
-        }
-        // Si el personaje está en el aire y ha estado cayendo más de 300ms (tiempo de animación turn)
-        else if (!this.characterObject.body.touching.down && this.fallTime > 300) {
-            this.characterObject.anims.play('jump', true); // Reproducir animación de salto
-        }
-        // Movimiento combinado con salto (derecha)
-        if (this.cursors.right.isDown && this.cursors.up.isDown) {
-            this.characterObject.body.setVelocityX(160); // Mover a la derecha mientras saltas
-            this.characterObject.flipX = false; // Mantener la dirección original
-            this.characterObject.anims.play('jump', true); // Animación de salto
-        }
-        // Movimiento combinado con salto (izquierda)
-        else if (this.cursors.left.isDown && this.cursors.up.isDown) {
-            this.characterObject.body.setVelocityX(-160); // Mover a la izquierda mientras saltas
-            this.characterObject.flipX = true; // Invertir la dirección del personaje
-            this.characterObject.anims.play('jump', true); // Animación de salto
-        }
-        // Movimiento a la izquierda (caminar)
-        else if (this.cursors.left.isDown) {
-            if (this.isDamaged == true) {
-                this.time.addEvent({
-                    delay: 350, // Esperar 3s
-                    loop: false, // Solo se ejecuta una vez
-                    callback: () => {
-                        this.isDamaged = false;
-                    },
-                });
+            // Inicializar el tiempo de caída si no está tocando el suelo
+            if (!this.characterObject.body.touching.down) {
+                // Si no está tocando el suelo, incrementamos el tiempo de caída
+                this.fallTime += this.game.loop.delta; // Aumentar el tiempo de caída
             } else {
-                this.characterObject.body.setVelocityX(-160);   // Mover a la izquierda
-                this.characterObject.flipX = true;               // Invertir la dirección del personaje
-                this.characterObject.anims.play('walk', true);    // Reproducir la animación de caminar
-            }
-        }
-        // Movimiento a la derecha (caminar)
-        else if (this.cursors.right.isDown) {
-            if (this.isDamaged == true) {
-                this.time.addEvent({
-                    delay: 350, // Esperar 3s
-                    loop: false, // Solo se ejecuta una vez
-                    callback: () => {
-                        this.isDamaged = false;
-                    },
-                });
-            } else {
-                this.characterObject.body.setVelocityX(160);    // Mover a la derecha
-                this.characterObject.flipX = false;              // Mantener la dirección original
-                this.characterObject.anims.play('walk', true);    // Reproducir la animación de caminar
+                // Si toca el suelo, resetear el tiempo de caída
+                this.fallTime = 0;
             }
 
-        }
+            // Verificar si el personaje está tocando el suelo y presionando la tecla de salto
+            if (this.cursors.up.isDown && this.characterObject.body.touching.down) {
+                if (this.isDamaged == true) {
+                    this.time.addEvent({
+                        delay: 350, // Esperar 3s
+                        loop: false, // Solo se ejecuta una vez
+                        callback: () => {
+                            this.isDamaged = false;
+                        },
+                    });
+                } else {
+                    this.characterObject.body.setVelocityY(-430); // Realiza el salto
+                    this.characterObject.anims.play('jump', true); // Reproducir animación de salto
+                }
 
-        // Si el personaje no se mueve y está tocando el suelo, reproducir la animación "turn"
-        if (!this.cursors.left.isDown && !this.cursors.right.isDown && this.characterObject.body.touching.down) {
-            if (this.isDamaged == true) {
-                this.time.addEvent({
-                    delay: 350, // Esperar 3s
-                    loop: false, // Solo se ejecuta una vez
-                    callback: () => {
-                        this.isDamaged = false;
-                    },
-                });
-            } else {
-                this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
+            }
+            // Si el personaje está en el aire y ha estado cayendo más de 300ms (tiempo de animación turn)
+            else if (!this.characterObject.body.touching.down && this.fallTime > 300) {
+                this.characterObject.anims.play('jump', true); // Reproducir animación de salto
+            }
+            // Movimiento combinado con salto (derecha)
+            if (this.cursors.right.isDown && this.cursors.up.isDown) {
+                if (this.isDamaged == true) {
+                    this.time.addEvent({
+                        delay: 350, // Esperar 3s
+                        loop: false, // Solo se ejecuta una vez
+                        callback: () => {
+                            this.isDamaged = false;
+                        },
+                    });
+                } else {
+                    if (shiftKey.isDown) {
+                        this.characterObject.body.setVelocityX(330); // Mover a la derecha mientras saltas
+                        this.characterObject.flipX = false; // Mantener la dirección original
+                        this.characterObject.anims.play('jump', true); // Animación de salto    
+                    } else {
+                        this.characterObject.body.setVelocityX(200); // Mover a la derecha mientras saltas
+                        this.characterObject.flipX = false; // Mantener la dirección original
+                        this.characterObject.anims.play('jump', true); // Animación de salto    
+                    }
+                }
+
+
+            }
+            // Movimiento combinado con salto (izquierda)
+            else if (this.cursors.left.isDown && this.cursors.up.isDown) {
+                if (this.isDamaged == true) {
+                    this.time.addEvent({
+                        delay: 350, // Esperar 3s
+                        loop: false, // Solo se ejecuta una vez
+                        callback: () => {
+                            this.isDamaged = false;
+                        },
+                    });
+                } else {
+                    if (shiftKey.isDown) {
+                        this.characterObject.body.setVelocityX(-330); // Mover a la izquierda mientras saltas
+                        this.characterObject.flipX = true; // Invertir la dirección del personaje
+                        this.characterObject.anims.play('jump', true); // Animación de salto
+                    } else {
+                        this.characterObject.body.setVelocityX(-200); // Mover a la izquierda mientras saltas
+                        this.characterObject.flipX = true; // Invertir la dirección del personaje
+                        this.characterObject.anims.play('jump', true); // Animación de salto    
+                    }
+                }
+            }
+
+
+            // Movimiento a la izquierda (caminar)
+            else if (this.cursors.left.isDown) {
+                if (this.isDamaged == true) {
+                    this.time.addEvent({
+                        delay: 350, // Esperar 3s
+                        loop: false, // Solo se ejecuta una vez
+                        callback: () => {
+                            this.isDamaged = false;
+                        },
+                    });
+                } else {
+                    if (shiftKey.isDown) {
+                        this.characterObject.body.setVelocityX(-330);   // Mover a la izquierda
+                        this.characterObject.flipX = true;               // Invertir la dirección del personaje
+                        this.characterObject.anims.play('run', true);    // Reproducir la animación de caminar
+                    } else {
+                        this.characterObject.body.setVelocityX(-200);   // Mover a la izquierda
+                        this.characterObject.flipX = true;               // Invertir la dirección del personaje
+                        this.characterObject.anims.play('walk', true);    // Reproducir la animación de caminar
+                    }
+
+                }
+            }
+            // Movimiento a la derecha (caminar)
+            else if (this.cursors.right.isDown) {
+                if (this.isDamaged == true) {
+                    this.time.addEvent({
+                        delay: 350, // Esperar 3s
+                        loop: false, // Solo se ejecuta una vez
+                        callback: () => {
+                            this.isDamaged = false;
+                        },
+                    });
+                } else {
+                    if (shiftKey.isDown && this.cursors.right.isDown) {
+                        console.log("SHIFT up");
+                        this.characterObject.body.setVelocityX(330);    // Mover a la derecha
+                        this.characterObject.flipX = false;              // Mantener la dirección original
+                        this.characterObject.anims.play('run', true);    // Reproducir la animación de caminar
+                    } else {
+                        this.characterObject.body.setVelocityX(160);    // Mover a la derecha
+                        this.characterObject.flipX = false;              // Mantener la dirección original
+                        this.characterObject.anims.play('walk', true);    // Reproducir la animación de caminar
+                    }
+
+                }
+
+            }
+
+            // Si el personaje no se mueve y está tocando el suelo, reproducir la animación "turn"
+            if (!this.cursors.left.isDown && !this.cursors.right.isDown && this.characterObject.body.touching.down) {
+                if (this.isDamaged == true) {
+                    this.time.addEvent({
+                        delay: 350, // Esperar 3s
+                        loop: false, // Solo se ejecuta una vez
+                        callback: () => {
+                            this.isDamaged = false;
+                        },
+                    });
+                } else {
+                    this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
+                }
+            }
+
+            // Si el personaje está en el aire, y ha estado cayendo menos de 300ms, reproducir la animación 'turn'
+            if (!this.characterObject.body.touching.down && this.fallTime <= 300) {
+                //this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
             }
         }
 
-        // Si el personaje está en el aire, y ha estado cayendo menos de 300ms, reproducir la animación 'turn'
-        if (!this.characterObject.body.touching.down && this.fallTime <= 300) {
-            //this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
-        }
+
 
 
 
@@ -849,7 +1062,7 @@ const config = {
     width: 1280,
     height: 720,
     // Array que indica el orden de visualización del vj
-    scene: [Menu, MainScene, Level, Mode, Controls, EndGame],
+    scene: [Nivel1, Nivel2, Level, Mode, Controls, EndGame],
     scale: {
         mode: Phaser.Scale.FIT
     }, physics: {
