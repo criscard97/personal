@@ -4,6 +4,9 @@
 let character = "";
 let stars = "";
 let score = 0; // Variable para llevar el puntaje
+this.isDamaged = false;
+let isDead = false;
+let attackFlag = false;
 
 class MainScene extends Phaser.Scene/*Nivel 1*/ {
     constructor() {
@@ -185,7 +188,7 @@ class MainScene extends Phaser.Scene/*Nivel 1*/ {
     update()/*Nivel 1*/ {
         // Detener el movimiento horizontal cuando no haya teclas presionadas
         this.characterObject.body.setVelocityX(0);
-    
+
         // Inicializar el tiempo de caída si no está tocando el suelo
         if (!this.characterObject.body.touching.down) {
             // Si no está tocando el suelo, incrementamos el tiempo de caída
@@ -194,7 +197,7 @@ class MainScene extends Phaser.Scene/*Nivel 1*/ {
             // Si toca el suelo, resetear el tiempo de caída
             this.fallTime = 0;
         }
-    
+
         // Verificar si el personaje está tocando el suelo y presionando la tecla de salto
         if (this.cursors.up.isDown && this.characterObject.body.touching.down) {
             this.characterObject.body.setVelocityY(-430); // Realiza el salto
@@ -228,26 +231,26 @@ class MainScene extends Phaser.Scene/*Nivel 1*/ {
             this.characterObject.flipX = false;              // Mantener la dirección original
             this.characterObject.anims.play('walk', true);    // Reproducir la animación de caminar
         }
-    
+
         // Si el personaje no se mueve y está tocando el suelo, reproducir la animación "turn"
         if (!this.cursors.left.isDown && !this.cursors.right.isDown && this.characterObject.body.touching.down) {
             this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
         }
-    
+
         // Si el personaje está en el aire, y ha estado cayendo menos de 300ms, reproducir la animación 'turn'
         if (!this.characterObject.body.touching.down && this.fallTime <= 300) {
             //this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
         }
-    
+
         // Verificar si se recolectaron todas las estrellas
         if (score == 100) {
             this.stitch.anims.stop();  // Detener la animación anterior
             this.scene.start('nextLevelScene'); // Cambiar a la siguiente escena (nivel)
         }
     }
-    
-    
-    
+
+
+
 
 
 
@@ -260,7 +263,7 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
         super('nextLevelScene');
     }
 
-    preload() /*Nivel 2*/{
+    preload() /*Nivel 2*/ {
         // En primer lugar, solo se ejecuta una vez
         // Multimedia
         this.load.baseURL = './';
@@ -314,7 +317,7 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
 
     }
 
-    create() /*Nivel 2*/{
+    create() /*Nivel 2*/ {
         // Fondo
         this.add.image(640, 360, 'fondo2').setScale(0.9);
 
@@ -449,6 +452,8 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
             } else {
                 this.characterObject.setTint(0xff0000);
                 // Usar el temporizador para esperar 500ms antes de restaurar el color
+                this.characterObject.anims.play('hurt', true);
+                this.isDamaged = true;
                 this.time.addEvent({
                     delay: 500, // Esperar 500ms
                     callback: () => {
@@ -487,6 +492,8 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
             } else {
                 this.characterObject.setTint(0xff0000);
                 // Usar el temporizador para esperar 500ms antes de restaurar el color
+                this.characterObject.anims.play('hurt', true);
+                this.isDamaged = true;
                 this.time.addEvent({
                     delay: 500, // Esperar 500ms
                     callback: () => {
@@ -586,6 +593,18 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
             frameRate: 15,
             repeat: -1
         });
+        // Animación daño
+        this.anims.create({
+            key: 'hurt',
+            frames: [
+                { key: 'hurt1' },
+                { key: 'hurt2' },
+                { key: 'hurt3' },
+                { key: 'hurt4' },
+            ],
+            frameRate: 10,
+            repeat: -1
+        });
 
 
 
@@ -638,6 +657,8 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
 
         }
 
+
+
         // Inicializar el tiempo de caída si no está tocando el suelo
         if (!this.characterObject.body.touching.down) {
             // Si no está tocando el suelo, incrementamos el tiempo de caída
@@ -646,7 +667,7 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
             // Si toca el suelo, resetear el tiempo de caída
             this.fallTime = 0;
         }
-    
+
         // Verificar si el personaje está tocando el suelo y presionando la tecla de salto
         if (this.cursors.up.isDown && this.characterObject.body.touching.down) {
             this.characterObject.body.setVelocityY(-430); // Realiza el salto
@@ -670,26 +691,60 @@ class Menu extends Phaser.Scene/*Nivel 2*/ {
         }
         // Movimiento a la izquierda (caminar)
         else if (this.cursors.left.isDown) {
-            this.characterObject.body.setVelocityX(-160);   // Mover a la izquierda
-            this.characterObject.flipX = true;               // Invertir la dirección del personaje
-            this.characterObject.anims.play('walk', true);    // Reproducir la animación de caminar
+            if (this.isDamaged == true) {
+                this.time.addEvent({
+                    delay: 350, // Esperar 3s
+                    loop: false, // Solo se ejecuta una vez
+                    callback: () => {
+                        this.isDamaged = false;
+                    },
+                });
+            } else {
+                this.characterObject.body.setVelocityX(-160);   // Mover a la izquierda
+                this.characterObject.flipX = true;               // Invertir la dirección del personaje
+                this.characterObject.anims.play('walk', true);    // Reproducir la animación de caminar
+            }
         }
         // Movimiento a la derecha (caminar)
         else if (this.cursors.right.isDown) {
-            this.characterObject.body.setVelocityX(160);    // Mover a la derecha
-            this.characterObject.flipX = false;              // Mantener la dirección original
-            this.characterObject.anims.play('walk', true);    // Reproducir la animación de caminar
+            if (this.isDamaged == true) {
+                this.time.addEvent({
+                    delay: 350, // Esperar 3s
+                    loop: false, // Solo se ejecuta una vez
+                    callback: () => {
+                        this.isDamaged = false;
+                    },
+                });
+            } else {
+                this.characterObject.body.setVelocityX(160);    // Mover a la derecha
+                this.characterObject.flipX = false;              // Mantener la dirección original
+                this.characterObject.anims.play('walk', true);    // Reproducir la animación de caminar
+            }
+
         }
-    
+
         // Si el personaje no se mueve y está tocando el suelo, reproducir la animación "turn"
         if (!this.cursors.left.isDown && !this.cursors.right.isDown && this.characterObject.body.touching.down) {
-            this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
+            if (this.isDamaged == true) {
+                this.time.addEvent({
+                    delay: 350, // Esperar 3s
+                    loop: false, // Solo se ejecuta una vez
+                    callback: () => {
+                        this.isDamaged = false;
+                    },
+                });
+            } else {
+                this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
+            }
         }
-    
+
         // Si el personaje está en el aire, y ha estado cayendo menos de 300ms, reproducir la animación 'turn'
         if (!this.characterObject.body.touching.down && this.fallTime <= 300) {
             //this.characterObject.anims.play('turn', true); // Reproducir animación de reposo
         }
+
+
+
     }
 
 
@@ -794,7 +849,7 @@ const config = {
     width: 1280,
     height: 720,
     // Array que indica el orden de visualización del vj
-    scene: [MainScene, Menu, Level, Mode, Controls, EndGame],
+    scene: [Menu, MainScene, Level, Mode, Controls, EndGame],
     scale: {
         mode: Phaser.Scale.FIT
     }, physics: {
