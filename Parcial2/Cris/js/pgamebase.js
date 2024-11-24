@@ -11,6 +11,7 @@ class Nivel1 extends Phaser.Scene /*NIVEL 1*/ {
         // Multimedia
         this.load.baseURL = './';
         this.load.image('fondo1', './img/background1.png');
+        this.load.image('mensaje', './img/extras/message-square.png');
         this.load.image('prota', './img/prota/Idle__000.png');
         for (let i = 0; i <= 9; i++) {
             const key = `reposo${i}`;
@@ -43,6 +44,14 @@ class Nivel1 extends Phaser.Scene /*NIVEL 1*/ {
 
         // Añadir el fondo
         this.add.image(640, 360, 'fondo1').setScale(0.5);
+        this.time.addEvent({
+            delay: 1500, // Esperar 500ms
+            callback: () => {
+                this.add.image(340, 460, 'mensaje').setScale(0.04);
+            },
+            loop: false // Solo se ejecuta una vez
+        });
+        
 
         // Crear el sensei primero para que aparezca en el fondo
         this.senseiGroup = this.physics.add.staticGroup();
@@ -152,7 +161,7 @@ class Nivel1 extends Phaser.Scene /*NIVEL 1*/ {
         this.anims.create({
             key: 'sensei',
             frames: Array.from({ length: 3 }, (_, i) => ({ key: `sensei${i + 1}` })), // Los frames de reposo0 a reposo9
-            frameRate: 2,
+            frameRate: 3,
             repeat: -1  // Esto hará que la animación se repita indefinidamente
         });
 
@@ -705,7 +714,7 @@ const config = {
     }, physics: {
         default: 'arcade',
         arcade: {
-            debug: true,
+            debug: false,
             gravity: {
                 y: 300,
 
