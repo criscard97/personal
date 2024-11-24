@@ -206,7 +206,7 @@ class Nivel1 extends Phaser.Scene/*Nivel 1*/ {
 
         if (isDead) {
 
-        }  else {
+        } else {
             // Inicializar el tiempo de caída si no está tocando el suelo
             if (!this.characterObject.body.touching.down) {
                 // Si no está tocando el suelo, incrementamos el tiempo de caída
@@ -986,24 +986,70 @@ class Level extends Phaser.Scene {
 
 }
 
-class Mode extends Phaser.Scene {
+class MainMenu extends Phaser.Scene {
     constructor() {
-        super('modeScene');
+        super('mainmenu');
     }
 
     preload() {
         // En primer lugar, solo se ejecuta una vez
         // Multimedia
+        this.load.baseURL = './';
+        this.load.image('main', './img/screens/mainmenu.png');
     }
 
     create() {
         // En segundo lugar, se ejecuta una vez
         // Toda la lógica del videojuego
+        this.add.image(640, 360, 'main').setScale(0.15);
+        // Crear un objeto Graphics
+        this.rectangulo = this.add.graphics();
+        this.rectangulo2 = this.add.graphics();
+
+
+        this.rectangulo.lineStyle(4, 0xffffff, 1);  // Grosor de línea 4px, color rojo (0xff0000), opacidad 1 (totalmente opaco)
+        this.rectangulo.strokeRect(550, 410, 180, 60);  // Coordenadas (100, 100), 200px de ancho y 150px de alto
+        //this.rectangulo2.lineStyle(4, 0xffffff, 1);  // Grosor de línea 4px, color rojo (0xff0000), opacidad 1 (totalmente opaco)
+        this.rectangulo2.strokeRect(540, 485, 200, 60);  // Coordenadas (100, 100), 200px de ancho y 150px de alto
+
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.selection = 1;
+
+        this.enter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+
+
     }
 
     update() {
         // En tercer lugar, se ejutar una y otra vez
         // Actualización de multimedia
+        // Verificar si el personaje está tocando el suelo y presionando la tecla de salto
+        if (this.enter.isDown && (!this.cursors.up.isDown && !this.cursors.down.isDown)) {
+            if (this.selection == 1) {
+                this.scene.start('gameScene');
+            } else if (this.selection == 2) {
+                this.scene.start('controlsScene');
+            }
+        }
+        if (this.cursors.up.isDown) {
+            // Establecer el color y grosor del borde (lineStyle)
+            this.selection = 1;
+            console.log(this.selection);
+            this.rectangulo.lineStyle(4, 0xffffff, 1);  // Grosor de línea 4px, color rojo (0xff0000), opacidad 1 (totalmente opaco)
+            this.rectangulo.strokeRect(550, 410, 180, 60);  // Coordenadas (100, 100), 200px de ancho y 150px de alto
+            this.rectangulo2.lineStyle(4, 0x000000, 1);  // Grosor de línea 4px, color rojo (0xff0000), opacidad 1 (totalmente opaco)
+            this.rectangulo2.strokeRect(540, 485, 200, 60);  // Coordenadas (100, 100), 200px de ancho y 150px de alto
+
+        } else if (this.cursors.down.isDown) {
+            this.selection = 2;
+            console.log(this.selection);
+            // Dibujar solo el borde del rectángulo (x, y, ancho, alto)
+            this.rectangulo.strokeRect(550, 410, 180, 60);  // Coordenadas (100, 100), 200px de ancho y 150px de alto
+            this.rectangulo2.strokeRect(540, 485, 200, 60);  // Coordenadas (100, 100), 200px de ancho y 150px de alto
+            this.rectangulo2.lineStyle(4, 0xffffff, 1);  // Grosor de línea 4px, color rojo (0xff0000), opacidad 1 (totalmente opaco)
+            this.rectangulo.lineStyle(4, 0x000000, 1);
+        }
+
     }
 
 }
@@ -1016,16 +1062,30 @@ class Controls extends Phaser.Scene {
     preload() {
         // En primer lugar, solo se ejecuta una vez
         // Multimedia
+        this.load.baseURL = './';
+        this.load.image('controls', './img/screens/controls.png');
     }
 
     create() {
         // En segundo lugar, se ejecuta una vez
         // Toda la lógica del videojuego
+        this.add.image(640, 360, 'controls').setScale(0.14);
+        this.rectangulo = this.add.graphics();
+
+        this.rectangulo.lineStyle(4, 0xffffff, 1);  // Grosor de línea 4px, color rojo (0xff0000), opacidad 1 (totalmente opaco)
+        this.rectangulo.strokeRect(500, 565, 180, 60);
+        this.enter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+
+        
+
     }
 
     update() {
         // En tercer lugar, se ejutar una y otra vez
         // Actualización de multimedia
+        if (this.enter.isDown) {
+            this.scene.start('mainmenu');
+        }
     }
 
 }
@@ -1062,7 +1122,7 @@ const config = {
     width: 1280,
     height: 720,
     // Array que indica el orden de visualización del vj
-    scene: [Nivel1, Nivel2, Level, Mode, Controls, EndGame],
+    scene: [MainMenu, Nivel1, Nivel2, Controls, Level, EndGame],
     scale: {
         mode: Phaser.Scale.FIT
     }, physics: {
