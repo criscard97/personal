@@ -654,8 +654,8 @@ class MainMenu extends Phaser.Scene {
         // Toda la lógica del 
         this.add.image(640, 360, 'mainmenu').setScale(0.15);
         this.cursors = this.input.keyboard.createCursorKeys();
-        this.music_gameover = this.sound.add('sound_mainmenu', { loop: false });
-        this.music_gameover.play({ volume: 0.1 });
+        this.music_mainmenu = this.sound.add('sound_mainmenu', { loop: false });
+        this.music_mainmenu.play({ volume: 0.1 });
         this.rectangulo = this.add.graphics();
         this.rectangulo2 = this.add.graphics();
 
@@ -674,10 +674,10 @@ class MainMenu extends Phaser.Scene {
         if (this.enter.isDown && (!this.cursors.up.isDown && !this.cursors.down.isDown)) {
             if (this.selection == 1) {
                 this.scene.start('gameScene');
-                this.music_gameover.stop();
+                this.music_mainmenu.stop();
             } else if (this.selection == 2) {
                 this.scene.start('controlsScene');
-                this.music_gameover.stop();
+                this.music_mainmenu.stop();
             }
         }
         if (this.cursors.up.isDown) {
@@ -784,6 +784,7 @@ class EndGame extends Phaser.Scene {
         if (this.enter.isDown && (!this.cursors.up.isDown && !this.cursors.down.isDown)) {
 
             this.scene.start('mainMenu');
+            this.music_gameover.stop();
 
         }
 
