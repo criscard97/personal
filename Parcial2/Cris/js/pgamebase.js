@@ -13,6 +13,7 @@ class Nivel1 extends Phaser.Scene /*NIVEL 1*/ {
         this.load.image('fondo1', './img/background1.png');
         this.load.image('mensaje', './img/extras/message-square.png');
         this.load.image('prota', './img/prota/Idle__000.png');
+
         for (let i = 0; i <= 9; i++) {
             const key = `reposo${i}`;
             const path = `./img/prota/Idle__${String(i).padStart(3, '0')}.png`;
@@ -44,14 +45,16 @@ class Nivel1 extends Phaser.Scene /*NIVEL 1*/ {
 
         // Añadir el fondo
         this.add.image(640, 360, 'fondo1').setScale(0.5);
+        let mensaje = this.add.image(340, 460, 'mensaje').setScale(0.04);
+        mensaje.setVisible(false);
         this.time.addEvent({
             delay: 1500, // Esperar 500ms
             callback: () => {
-                this.add.image(340, 460, 'mensaje').setScale(0.04);
+                mensaje.setVisible(true);
             },
             loop: false // Solo se ejecuta una vez
         });
-        
+        //        this.add.image(340, 460, 'mensaje').setScale(0.04);
 
         // Crear el sensei primero para que aparezca en el fondo
         this.senseiGroup = this.physics.add.staticGroup();
@@ -59,6 +62,7 @@ class Nivel1 extends Phaser.Scene /*NIVEL 1*/ {
         this.sensei.refreshBody();
 
         // Crear el personaje después para que quede en frente
+
         this.character = this.physics.add.sprite(80, 490, 'prota').setScale(0.25);
 
 
@@ -165,7 +169,7 @@ class Nivel1 extends Phaser.Scene /*NIVEL 1*/ {
             repeat: -1  // Esto hará que la animación se repita indefinidamente
         });
 
-        this.sensei.anims.play('sensei',true);
+        this.sensei.anims.play('sensei', true);
 
     }
 
@@ -282,7 +286,7 @@ class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
         this.character.body.setOffset(0, 0);  // Alinea el cuadro de colisión con el sprite
         // Inicializar los controles
         this.cursors = this.input.keyboard.createCursorKeys();
-        
+
 
         // Crear el piso
         let piso = this.physics.add.staticGroup();
@@ -504,7 +508,7 @@ class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
             frameRate: 6,
             repeat: 0
         });
-        
+
         this.anims.create({
             key: 'attack',
             frames: Array.from({ length: 9 }, (_, i) => ({ key: `ataque${i + 1}` })), // Ajuste de índices
@@ -518,8 +522,8 @@ class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
             frameRate: 10,
             repeat: -1  // Esto hará que la animación se repita indefinidamente
         });
-        
-        
+
+
 
         // Asegúrate de que cada orbe reproduzca la animación cuando se crea
         this.orb.children.iterate(function (orb) {
@@ -533,7 +537,7 @@ class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
             this.character.anims.play('attack', true);
             this.attackFlag = true;
         });
-        
+
 
 
     }
@@ -543,7 +547,7 @@ class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
         // Lógica de movimiento
         this.character.body.setVelocityX(0);  // Detener el movimiento horizontal
 
-        
+
 
         // Verificar si el personaje está tocando el suelo y presionando la tecla de salto
         if (this.cursors.up.isDown && this.character.body.touching.down) {
@@ -583,10 +587,10 @@ class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
 
         // Si no se mueve, poner al personaje en reposo
         if (!this.cursors.left.isDown && !this.cursors.right.isDown && this.character.body.touching.down) {
-            if(!this.attackFlag == true){
+            if (!this.attackFlag == true) {
                 this.character.anims.play('turn', true);  // Reproducir animación de reposo
-                
-            }else{
+
+            } else {
                 this.time.addEvent({
                     delay: 300, // Esperar 3s
                     loop: false, // Solo se ejecuta una vez
@@ -595,7 +599,7 @@ class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
                     },
                 });
             }
-            
+
         }
 
         // Si el personaje está cayendo (no está tocando el suelo), activar animación de caída
@@ -632,24 +636,67 @@ class Level extends Phaser.Scene {
 
 }
 
-class Mode extends Phaser.Scene {
+class MainMenu extends Phaser.Scene {
     constructor() {
-        super('modeScene');
+        super('mainMenu');
     }
 
     preload() {
         // En primer lugar, solo se ejecuta una vez
         // Multimedia
+        this.load.baseURL = './';
+        this.load.image('mainmenu', './img/screens/mainmenu.png');
+        this.load.audio('sound_mainmenu', './audios/2-NinjaGaiden_MainMenu.mp3');
     }
 
     create() {
         // En segundo lugar, se ejecuta una vez
-        // Toda la lógica del videojuego
+        // Toda la lógica del 
+        this.add.image(640, 360, 'mainmenu').setScale(0.15);
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.music_gameover = this.sound.add('sound_mainmenu', { loop: false });
+        this.music_gameover.play({ volume: 0.1 });
+        this.rectangulo = this.add.graphics();
+        this.rectangulo2 = this.add.graphics();
+
+
+        this.rectangulo.lineStyle(4, 0x000000, 1);  // Grosor de línea 4px, color rojo (0xff0000), opacidad 1 (totalmente opaco)
+        this.rectangulo.strokeRect(540, 480, 200, 60);  // Coordenadas (100, 100), 200px de ancho y 150px de alto
+        //this.rectangulo2.lineStyle(4, 0xffffff, 1);  // Grosor de línea 4px, color rojo (0xff0000), opacidad 1 (totalmente opaco)
+        this.rectangulo2.strokeRect(540, 550, 200, 60);  // Coordenadas (100, 100), 200px de ancho y 150px de alto
+        this.selection = 1;
+        this.enter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
     }
 
     update() {
         // En tercer lugar, se ejutar una y otra vez
         // Actualización de multimedia
+        if (this.enter.isDown && (!this.cursors.up.isDown && !this.cursors.down.isDown)) {
+            if (this.selection == 1) {
+                this.scene.start('gameScene');
+                this.music_gameover.stop();
+            } else if (this.selection == 2) {
+                this.scene.start('controlsScene');
+                this.music_gameover.stop();
+            }
+        }
+        if (this.cursors.up.isDown) {
+            // Establecer el color y grosor del borde (lineStyle)
+            this.selection = 1;
+            console.log(this.selection);
+            this.rectangulo.setVisible(true);            
+            this.rectangulo2.setVisible(false);  // Coordenadas (100, 100), 200px de ancho y 150px de alto
+
+        } else if (this.cursors.down.isDown) {
+            this.selection = 2;
+            console.log(this.selection);
+            // Dibujar solo el borde del rectángulo (x, y, ancho, alto)
+            this.rectangulo2.setVisible(true);
+            this.rectangulo2.strokeRect(540, 550, 200, 60);  // Coordenadas (100, 100), 200px de ancho y 150px de alto
+            this.rectangulo2.lineStyle(4, 0x000000, 1);  // Grosor de línea 4px, color rojo (0xff0000), opacidad 1 (totalmente opaco)
+            this.rectangulo.setVisible(false);
+        }
+
     }
 
 }
@@ -662,16 +709,30 @@ class Controls extends Phaser.Scene {
     preload() {
         // En primer lugar, solo se ejecuta una vez
         // Multimedia
+        this.load.baseURL = './';
+        this.load.image('controls', './img/screens/controls.png');
     }
 
     create() {
         // En segundo lugar, se ejecuta una vez
         // Toda la lógica del videojuego
+        this.add.image(640, 360, 'controls').setScale(0.14);
+        this.rectangulo = this.add.graphics();
+
+        this.rectangulo.lineStyle(4, 0xffffff, 1);  // Grosor de línea 4px, color rojo (0xff0000), opacidad 1 (totalmente opaco)
+        this.rectangulo.strokeRect(500, 545, 240, 60);
+        this.enter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+
+        
+
     }
 
     update() {
         // En tercer lugar, se ejutar una y otra vez
         // Actualización de multimedia
+        if (this.enter.isDown) {
+            this.scene.start('mainMenu');
+        }
     }
 
 }
@@ -685,18 +746,47 @@ class EndGame extends Phaser.Scene {
         // En primer lugar, solo se ejecuta una vez
         // Multimedia
         this.load.baseURL = './';
-        this.load.image('gameover', './img/gameover.png');
+        this.load.image('gameover', './img/screens/gameover.png');
+        this.load.audio('music_gameover', './audios/1-NinjaGaiden_GameOver.mp3');
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.enter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
     }
 
     create() {
         // En segundo lugar, se ejecuta una vez
         // Toda la lógica del videojuego
-        this.add.image(640, 360, 'gameover').setScale(0.2);
+        this.imagen = this.add.image(640, 360, 'gameover').setScale(0.2).setAlpha(0);
+        this.music_gameover = this.sound.add('music_gameover', { loop: false });
+        this.music_gameover.play({ volume: 0.1 });
+
+        // Usar un "tween" para aumentar la opacidad gradualmente
+
+
     }
 
     update() {
         // En tercer lugar, se ejutar una y otra vez
         // Actualización de multimedia
+
+        this.time.addEvent({
+            delay: 2500, // Esperar 500ms
+            callback: () => {
+                this.tweens.add({
+                    targets: this.imagen,
+                    alpha: 1,         // El valor final de opacidad (totalmente visible)
+                    duration: 2000,   // Tiempo en milisegundos (2 segundos en este caso)
+                    ease: 'EaseIn',   // Tipo de easing, ajusta para un efecto diferente
+                });
+            },
+            loop: false // Solo se ejecuta una vez
+        });
+
+        if (this.enter.isDown && (!this.cursors.up.isDown && !this.cursors.down.isDown)) {
+
+            this.scene.start('mainMenu');
+
+        }
+
     }
 
 }
@@ -708,7 +798,7 @@ const config = {
     width: 1280,
     height: 720,
     // Array que indica el orden de visualización del vj
-    scene: [Nivel1, Nivel2, Level, Mode, Controls, EndGame],
+    scene: [MainMenu, Nivel1, Nivel2, Level, Controls, EndGame],
     scale: {
         mode: Phaser.Scale.FIT
     }, physics: {
