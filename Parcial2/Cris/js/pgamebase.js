@@ -1,6 +1,7 @@
 // ============= 4 ETAPAS ===================
 // 1) Variables y funciones comunes a todas las clases
 // 2) Las clases que componen a nuestro videojuego (lógica del juego)
+let isDead = false;
 let score = 0; // Variable para llevar el puntaje
 class Nivel1 extends Phaser.Scene /*NIVEL 1*/ {
     constructor()/*NIVEL 1*/ {
@@ -10,6 +11,8 @@ class Nivel1 extends Phaser.Scene /*NIVEL 1*/ {
     preload()/*NIVEL 1*/ {
         // Multimedia
         this.load.baseURL = './';
+        this.load.audio('music_level1', './audios/3-NinjaGaiden_Nivel1.mp3');
+        this.load.audio('jump', './audios/7-Jump.mp3');
         this.load.image('fondo1', './img/background1.png');
         this.load.image('mensaje', './img/extras/message-square.png');
         this.load.image('prota', './img/prota/Idle__000.png');
@@ -44,6 +47,15 @@ class Nivel1 extends Phaser.Scene /*NIVEL 1*/ {
 
 
         // Añadir el fondo
+        this.musicalv1 = this.sound.add('music_level1', { loop: true });
+        this.time.addEvent({
+            delay: 500, // Esperar 500ms
+            callback: () => {
+                this.musicalv1.play({ volume: 0.3 });
+            },
+            loop: false // Solo se ejecuta una vez
+        });
+        this.jumpsound = this.sound.add('jump', { loop: false });
         this.add.image(640, 360, 'fondo1').setScale(0.5);
         let mensaje = this.add.image(340, 460, 'mensaje').setScale(0.04);
         mensaje.setVisible(false);
@@ -179,8 +191,10 @@ class Nivel1 extends Phaser.Scene /*NIVEL 1*/ {
 
         // Verificar si el personaje está tocando el suelo y presionando la tecla de salto
         if (this.cursors.up.isDown && this.character.body.touching.down) {
+            this.jumpsound.play();
             this.character.body.setVelocityY(-430); // Realiza el salto
             this.character.anims.play('jump', true); // Reproducir animación de salto
+
         }
 
         // Verificar si ya no está tocando el suelo (en el aire) y reproducir la animación de salto
@@ -225,6 +239,7 @@ class Nivel1 extends Phaser.Scene /*NIVEL 1*/ {
         }
         // Verificar si se recolectaron todas las estrellas
         if (score == 100) {
+            this.musicalv1.stop();
             this.scene.start('nextLevelScene'); // Cambiar a la siguiente escena (nivel)
         }
     }
@@ -241,6 +256,10 @@ class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
         // Multimedia
         this.load.baseURL = './';
         this.load.image('fondo', './img/background2.jpg');
+        this.load.audio('music_level2', './audios/4-NinjaGaiden_Nivel2.mp3');
+        this.load.audio('jump', './audios/7-Jump.mp3');
+        this.load.audio('dead', './audios/6-DeadSound.mp3');
+        this.load.audio('hurtsound', './audios/5-BeingHurt.mp3');
         this.load.image('platform', './img/platform.png');
         this.load.image('prota', './img/prota/Idle__000.png');
         for (let i = 0; i <= 9; i++) {
@@ -268,6 +287,11 @@ class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
             const path = `./img/blueorb/frame__${String(i).padStart(3, '0')}.png`;
             this.load.image(key, path);
         }
+        for (let i = 0; i <= 9; i++) {
+            const key = `dead${i}`;
+            const path = `./img/prota/Dead__${String(i).padStart(3, '0')}.png`;
+            this.load.image(key, path);
+        }
         this.load.image('enemy', './img/enemies/demon-mask.png');
         this.load.image('sensei2', './img/sensei/samurai2.png');
         this.load.image('sensei3', './img/sensei/samurai3.png');
@@ -278,6 +302,11 @@ class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
         // En segundo lugar, se ejecuta una vez
         // Toda la lógica del videojuego
         // Añadir el fondo
+        this.hurtsound = this.sound.add('hurtsound', { loop: false });
+        this.jumpsound = this.sound.add('jump', { loop: false });
+        this.deadsound = this.sound.add('dead', { loop: false });
+        this.musicalv2 = this.sound.add('music_level2', { loop: true });
+        this.musicalv2.play({ volume: 0.3 });
         this.add.image(640, 360, 'fondo');
 
         this.character = this.physics.add.sprite(80, 490, 'prota').setScale(0.22);
@@ -386,16 +415,23 @@ class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
                 score = 0;
                 console.log("Score: " + score);
                 console.log("Game Over");
+                this.musicalv2.stop();
                 this.physics.pause();
+                isDead = true;                
+                //this.characterObject.setPosition(this.characterObject.x, this.characterObject.y + 25);
+                this.deadsound.play();
                 this.character.setTint(0xAE445A); // Cambio de color para mostrar que ha perdido
+                this.character.anims.play('dead', true);
                 this.time.addEvent({
-                    delay: 1500,
+                    delay: 2000,
                     loop: false,
                     callback: () => {
                         this.scene.start("endScene");
+                        this.deadsound.stop();
                     }
                 });
             } else {
+                this.hurtsound.play();
                 console.log("Score: " + score);
                 this.character.setTint(0xff0000);
                 enemigo[0].setTint(0x2f2f2f);
@@ -412,6 +448,7 @@ class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
                     callback: () => {
                         this.character.clearTint();
                         enemigo[0].clearTint();
+                        this.hurtsound.stop();
                     },
                     loop: false // Solo se ejecuta una vez
                 });
@@ -442,16 +479,23 @@ class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
                 score = 0;
                 console.log("Score: " + score);
                 console.log("Game Over");
+                this.musicalv2.stop();
                 this.physics.pause();
+                isDead = true;                
+                //this.characterObject.setPosition(this.characterObject.x, this.characterObject.y + 25);
+                this.deadsound.play();
                 this.character.setTint(0xAE445A); // Cambio de color para mostrar que ha perdido
+                this.character.anims.play('dead', true);
                 this.time.addEvent({
-                    delay: 1500,
+                    delay: 2000,
                     loop: false,
                     callback: () => {
                         this.scene.start("endScene");
+                        this.deadsound.stop();
                     }
                 });
             } else {
+                this.hurtsound.play();
                 console.log("Score: " + score);
                 this.character.setTint(0xff0000);
                 enemigo[1].setTint(0x2f2f2f);
@@ -468,6 +512,7 @@ class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
                     callback: () => {
                         this.character.clearTint();
                         enemigo[1].clearTint();
+                        this.hurtsound.stop();
                     },
                     loop: false // Solo se ejecuta una vez
                 });
@@ -522,6 +567,13 @@ class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
             frameRate: 10,
             repeat: -1  // Esto hará que la animación se repita indefinidamente
         });
+        
+        this.anims.create({
+            key: 'dead',
+            frames: Array.from({ length: 9}, (_, i) => ({ key: `dead${i}` })), // Los frames de reposo0 a reposo9
+            frameRate: 15,
+            repeat: 0  // Esto hará que la animación se repita indefinidamente
+        });
 
 
 
@@ -547,66 +599,71 @@ class Nivel2 extends Phaser.Scene/*NIVEL 2*/ {
         // Lógica de movimiento
         this.character.body.setVelocityX(0);  // Detener el movimiento horizontal
 
+        if (isDead) {
 
-
-        // Verificar si el personaje está tocando el suelo y presionando la tecla de salto
-        if (this.cursors.up.isDown && this.character.body.touching.down) {
-            this.character.body.setVelocityY(-430); // Realiza el salto
-            this.character.anims.play('jump', true); // Reproducir animación de salto
-        }
-
-        // Verificar si ya no está tocando el suelo (en el aire) y reproducir la animación de salto
-        else if (this.cursors.up.isDown && !this.character.body.touching.down) {
-            this.character.anims.play('jump', true); // Reproducir animación de salto
-        }
-
-        // Movimiento combinado con salto (derecha)
-        if (this.cursors.right.isDown && this.cursors.up.isDown) {
-            this.character.body.setVelocityX(260); // Mover a la derecha mientras saltas
-            this.character.flipX = false; // Mantener la dirección original
-            this.character.anims.play('jump', true); // Animación de salto
-        }
-        // Movimiento combinado con salto (izquierda)
-        else if (this.cursors.left.isDown && this.cursors.up.isDown) {
-            this.character.body.setVelocityX(-260); // Mover a la izquierda mientras saltas
-            this.character.flipX = true; // Invertir la dirección del personaje
-            this.character.anims.play('jump', true); // Animación de salto
-        }
-        // Movimiento a la izquierda (caminar)
-        else if (this.cursors.left.isDown) {
-            this.character.body.setVelocityX(-260);   // Mover a la izquierda
-            this.character.flipX = true;               // Invertir la dirección del personaje
-            this.character.anims.play('run', true);    // Reproducir la animación de caminar
-        }
-        // Movimiento a la derecha (caminar)
-        else if (this.cursors.right.isDown) {
-            this.character.body.setVelocityX(260);    // Mover a la derecha
-            this.character.flipX = false;              // Mantener la dirección original
-            this.character.anims.play('run', true);    // Reproducir la animación de caminar
-        }
-
-        // Si no se mueve, poner al personaje en reposo
-        if (!this.cursors.left.isDown && !this.cursors.right.isDown && this.character.body.touching.down) {
-            if (!this.attackFlag == true) {
-                this.character.anims.play('turn', true);  // Reproducir animación de reposo
-
-            } else {
-                this.time.addEvent({
-                    delay: 300, // Esperar 3s
-                    loop: false, // Solo se ejecuta una vez
-                    callback: () => {
-                        this.attackFlag = false;
-                    },
-                });
+        } else {
+            // Verificar si el personaje está tocando el suelo y presionando la tecla de salto
+            if (this.cursors.up.isDown && this.character.body.touching.down) {
+                this.jumpsound.play();
+                this.character.body.setVelocityY(-430); // Realiza el salto
+                this.character.anims.play('jump', true); // Reproducir animación de salto
             }
 
+            // Verificar si ya no está tocando el suelo (en el aire) y reproducir la animación de salto
+            else if (this.cursors.up.isDown && !this.character.body.touching.down) {
+                this.character.anims.play('jump', true); // Reproducir animación de salto
+            }
+
+            // Movimiento combinado con salto (derecha)
+            if (this.cursors.right.isDown && this.cursors.up.isDown) {
+                this.character.body.setVelocityX(260); // Mover a la derecha mientras saltas
+                this.character.flipX = false; // Mantener la dirección original
+                this.character.anims.play('jump', true); // Animación de salto
+            }
+            // Movimiento combinado con salto (izquierda)
+            else if (this.cursors.left.isDown && this.cursors.up.isDown) {
+                this.character.body.setVelocityX(-260); // Mover a la izquierda mientras saltas
+                this.character.flipX = true; // Invertir la dirección del personaje
+                this.character.anims.play('jump', true); // Animación de salto
+            }
+            // Movimiento a la izquierda (caminar)
+            else if (this.cursors.left.isDown) {
+                this.character.body.setVelocityX(-260);   // Mover a la izquierda
+                this.character.flipX = true;               // Invertir la dirección del personaje
+                this.character.anims.play('run', true);    // Reproducir la animación de caminar
+            }
+            // Movimiento a la derecha (caminar)
+            else if (this.cursors.right.isDown) {
+                this.character.body.setVelocityX(260);    // Mover a la derecha
+                this.character.flipX = false;              // Mantener la dirección original
+                this.character.anims.play('run', true);    // Reproducir la animación de caminar
+            }
+
+            // Si no se mueve, poner al personaje en reposo
+            if (!this.cursors.left.isDown && !this.cursors.right.isDown && this.character.body.touching.down) {
+                if (!this.attackFlag == true) {
+                    this.character.anims.play('turn', true);  // Reproducir animación de reposo
+
+                } else {
+                    this.time.addEvent({
+                        delay: 300, // Esperar 3s
+                        loop: false, // Solo se ejecuta una vez
+                        callback: () => {
+                            this.attackFlag = false;
+                        },
+                    });
+                }
+
+            }
+
+            // Si el personaje está cayendo (no está tocando el suelo), activar animación de caída
+            if (!this.cursors.left.isDown && !this.cursors.right.isDown && !this.cursors.up.isDown && !this.character.body.touching.down) {
+                // Aquí se puede agregar una animación de caída, si la tienes
+                this.character.anims.play('jump', true);  // Reproducir animación de caída
+            }
         }
 
-        // Si el personaje está cayendo (no está tocando el suelo), activar animación de caída
-        if (!this.cursors.left.isDown && !this.cursors.right.isDown && !this.cursors.up.isDown && !this.character.body.touching.down) {
-            // Aquí se puede agregar una animación de caída, si la tienes
-            this.character.anims.play('jump', true);  // Reproducir animación de caída
-        }
+
 
 
     }
@@ -654,7 +711,7 @@ class MainMenu extends Phaser.Scene {
         // Toda la lógica del 
         this.add.image(640, 360, 'mainmenu').setScale(0.15);
         this.cursors = this.input.keyboard.createCursorKeys();
-        this.music_mainmenu = this.sound.add('sound_mainmenu', { loop: false });
+        this.music_mainmenu = this.sound.add('sound_mainmenu', { loop: true });
         this.music_mainmenu.play({ volume: 0.1 });
         this.rectangulo = this.add.graphics();
         this.rectangulo2 = this.add.graphics();
@@ -684,7 +741,7 @@ class MainMenu extends Phaser.Scene {
             // Establecer el color y grosor del borde (lineStyle)
             this.selection = 1;
             console.log(this.selection);
-            this.rectangulo.setVisible(true);            
+            this.rectangulo.setVisible(true);
             this.rectangulo2.setVisible(false);  // Coordenadas (100, 100), 200px de ancho y 150px de alto
 
         } else if (this.cursors.down.isDown) {
@@ -723,7 +780,7 @@ class Controls extends Phaser.Scene {
         this.rectangulo.strokeRect(500, 545, 240, 60);
         this.enter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
 
-        
+
 
     }
 
