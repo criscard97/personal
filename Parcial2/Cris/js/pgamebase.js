@@ -783,8 +783,9 @@ class EndGame extends Phaser.Scene {
 
         if (this.enter.isDown && (!this.cursors.up.isDown && !this.cursors.down.isDown)) {
 
-            this.scene.start('mainMenu');
+            //this.scene.start('mainMenu');
             this.music_gameover.stop();
+            window.location.reload();
 
         }
 
